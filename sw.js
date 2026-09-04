@@ -2,11 +2,21 @@
 // BTC Stack — Service Worker
 // Cache do app shell (cache-first) + cache de API com TTL de 5 min
 // (network-first com fallback pro cache expirado quando offline) +
-// checagem de alertas de preço em segundo plano (periodicsync/sync).
+// checagem de alertas em segundo plano (periodicsync/sync).
+//
+// Cobertura offline por tipo de alerta:
+//  • Halving  — 100% offline, mesmo sem rede nenhuma (estimativa por
+//    tempo, sem depender de nenhuma API).
+//  • Preço / Variação % — exigem a cotação atual do BTC; com o
+//    dispositivo totalmente offline não há como avaliar a condição
+//    (limitação real, não uma falha de implementação). Ainda assim,
+//    disparam assim que a conexão volta, via Background Sync.
+//  • Ciclo (Fear & Greed / MVRV) — dependem de um índice externo;
+//    mesma limitação de preço/variação.
 // ══════════════════════════════════════════════════════════════
 'use strict';
 
-const SW_VERSION     = 'v1.3'; // incremente para forçar atualização do cache
+const SW_VERSION     = 'v2.0'; // incremente para forçar atualização do cache
 const CACHE_NAME     = SW_VERSION;
 const SHELL_CACHE    = CACHE_NAME + '-shell';
 const API_CACHE      = CACHE_NAME + '-api';
@@ -163,6 +173,26 @@ const BG_DB_NAME = 'btcport-bg-db';
 const BG_STORE   = 'kv';
 const BG_SYMBOL_MAP = { USD: 'BTCUSDT', BRL: 'BTCBRL', EUR: 'BTCEUR' };
 
+// ── Halving: estimativa 100% offline ──
+// Mesma lógica usada pela página (estimateBlockFromTime), duplicada aqui
+// porque o Service Worker não tem acesso ao código da página. Não depende
+// de nenhuma requisição de rede — é só aritmética sobre a data do último
+// halving conhecido — então continua funcionando mesmo com o app fechado
+// e o dispositivo sem internet.
+const HALVING_LAST_BLOCK   = 840000;
+const HALVING_LAST_DATE    = new Date('2024-04-20T00:00:00Z').getTime();
+const HALVING_NEXT_BLOCK   = 1050000;
+const HALVING_AVG_BLOCK_MS = 10 * 60 * 1000;
+
+function bgHalvingDaysRemaining() {
+    const elapsedMs      = Date.now() - HALVING_LAST_DATE;
+    const blocksSince    = Math.floor(elapsedMs / HALVING_AVG_BLOCK_MS);
+    const currentBlockEst = HALVING_LAST_BLOCK + Math.max(0, blocksSince);
+    const blocksRemaining = Math.max(0, HALVING_NEXT_BLOCK - currentBlockEst);
+    const msRemaining     = blocksRemaining * HALVING_AVG_BLOCK_MS;
+    return Math.floor(msRemaining / (1000 * 60 * 60 * 24));
+}
+
 function bgIdbOpen() {
     return new Promise((resolve, reject) => {
         const req = indexedDB.open(BG_DB_NAME, 1);
@@ -209,6 +239,45 @@ async function bgFetchPrices() {
     return out;
 }
 
+// ── Histórico de preço em segundo plano (alertas de variação %) ──
+// Mesma estrutura usada pela página (chave 'priceHistory' no IndexedDB
+// compartilhado). A cada checagem em segundo plano, adiciona uma
+// amostra e poda entradas com mais de 8 dias — assim o histórico
+// continua evoluindo mesmo com o app fechado, em navegadores com
+// suporte a periodicsync.
+const BG_HISTORY_MAX_MS    = 8 * 24 * 60 * 60 * 1000;
+const BG_HISTORY_SAMPLE_MS = 5 * 60 * 1000;
+const BG_HISTORY_TOLERANCE = 30 * 60 * 1000;
+
+async function bgUpdatePriceHistory(db, prices) {
+    let rec;
+    try { rec = await bgIdbGet(db, 'priceHistory'); } catch (e) { rec = null; }
+    const hist = (rec && rec.data) || { USD: [], BRL: [], EUR: [] };
+    const now  = Date.now();
+    for (const cur of ['USD', 'BRL', 'EUR']) {
+        if (!hist[cur]) hist[cur] = [];
+        if (prices[cur]) {
+            const last = hist[cur][hist[cur].length - 1];
+            if (!last || (now - last.ts) >= BG_HISTORY_SAMPLE_MS) hist[cur].push({ ts: now, price: prices[cur] });
+        }
+        const cutoff = now - BG_HISTORY_MAX_MS;
+        hist[cur] = hist[cur].filter(p => p.ts >= cutoff);
+    }
+    try { await bgIdbPut(db, { key: 'priceHistory', data: hist }); } catch (e) {}
+    return hist;
+}
+
+function bgPctChange(hist, currency, windowH, currentPrice) {
+    const arr = (hist && hist[currency]) || [];
+    if (arr.length === 0 || !currentPrice) return null;
+    const cutoff = Date.now() - windowH * 60 * 60 * 1000;
+    let base = null;
+    for (const p of arr) { if (p.ts >= cutoff) { base = p; break; } }
+    if (!base) base = arr[0];
+    if (!base || base.ts > cutoff + BG_HISTORY_TOLERANCE || !base.price) return null;
+    return ((currentPrice - base.price) / base.price) * 100;
+}
+
 async function checkPriceAlertsBg() {
     let db;
     try { db = await bgIdbOpen(); } catch (e) { return; }
@@ -224,9 +293,72 @@ async function checkPriceAlertsBg() {
 
     let bgNotified = new Set((notifiedRec && notifiedRec.data) || []);
     const prices = await bgFetchPrices();
+    const hist   = await bgUpdatePriceHistory(db, prices);
     let changed = false;
 
     for (const a of alerts) {
+        const type = a.type || 'price';
+
+        if (type === 'halving') {
+            // Funciona mesmo sem rede nenhuma: pura estimativa por tempo.
+            const daysRemaining = bgHalvingDaysRemaining();
+            const should = daysRemaining <= a.days;
+
+            if (should && !bgNotified.has(a.id)) {
+                bgNotified.add(a.id);
+                changed = true;
+                try {
+                    await self.registration.showNotification('₿ Alerta BTC', {
+                        body: `Faltam ${daysRemaining} dia(s) para o halving do Bitcoin! 🎉`,
+                        tag: 'btc-alert-' + a.id,
+                        icon: 'icons/icon-192.png',
+                        badge: 'icons/icon-192.png',
+                        data: { url: self.registration.scope },
+                        requireInteraction: false
+                    });
+                } catch (e) { /* notificação pode falhar se permissão foi revogada */ }
+            } else if (!should && bgNotified.has(a.id)) {
+                bgNotified.delete(a.id);
+                changed = true;
+            }
+            continue;
+        }
+
+        if (type === 'cycle') {
+            // Fear & Greed / MVRV vêm de um índice externo — sem rede,
+            // não há como saber o valor atual. Não é possível checar offline.
+            continue;
+        }
+
+        if (type === 'percent') {
+            const currentPrice = prices[a.currency];
+            const pct = bgPctChange(hist, a.currency, a.windowH, currentPrice);
+            if (pct === null) continue; // histórico ainda insuficiente para essa janela
+            const should = a.direction === 'down' ? pct <= -a.percent : pct >= a.percent;
+
+            if (should && !bgNotified.has(a.id)) {
+                bgNotified.add(a.id);
+                changed = true;
+                const sym      = { USD: '$', BRL: 'R$', EUR: '€' }[a.currency] || '';
+                const winLabel = { 1: '1h', 24: '24h', 168: '7 dias' }[a.windowH] || (a.windowH + 'h');
+                const dirText  = a.direction === 'down' ? 'caiu' : 'subiu';
+                try {
+                    await self.registration.showNotification('₿ Alerta BTC', {
+                        body: 'BTC ' + dirText + ' ' + Math.abs(pct).toFixed(1) + '% em ' + winLabel + ' (' + sym + ' ' + a.currency + ')',
+                        tag: 'btc-alert-' + a.id,
+                        icon: 'icons/icon-192.png',
+                        badge: 'icons/icon-192.png',
+                        data: { url: self.registration.scope },
+                        requireInteraction: false
+                    });
+                } catch (e) { /* notificação pode falhar se permissão foi revogada */ }
+            } else if (!should && bgNotified.has(a.id)) {
+                bgNotified.delete(a.id);
+                changed = true;
+            }
+            continue;
+        }
+
         const price = prices[a.currency];
         if (!price) continue;
         const should = a.direction === 'up' ? price >= a.price : price <= a.price;
