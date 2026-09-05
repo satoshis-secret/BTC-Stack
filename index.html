@@ -8887,27 +8887,39 @@ document.getElementById('install-modal-overlay').addEventListener('click', funct
 // ── Onboarding / tutorial de boas-vindas ─────────────────────────
 const ONBOARDING_KEY   = 'btcstack_onboarding_v1';
 const ONBOARDING_STEPS = 5;
-let _onboardingStep = 0;
+// Passo 3 = slide "Alertas e indicadores de ciclo". Se o app estiver rodando
+// empacotado (Median/WebView), esse slide é pulado, já que a aba Alertas
+// fica oculta nesse contexto (ver applyWebViewRestrictions()).
+let _onboardingVisibleSteps = [0, 1, 2, 3, 4];
+let _onboardingStep = 0; // índice dentro de _onboardingVisibleSteps, não o data-step direto
+
+function onboardingComputeVisibleSteps() {
+    _onboardingVisibleSteps = isWrappedWebView() ? [0, 1, 2, 4] : [0, 1, 2, 3, 4];
+}
 
 function onboardingRenderStep() {
+    const realStep = _onboardingVisibleSteps[_onboardingStep];
     document.querySelectorAll('.onboarding-slide').forEach(el => {
-        el.classList.toggle('active', parseInt(el.dataset.step, 10) === _onboardingStep);
+        el.classList.toggle('active', parseInt(el.dataset.step, 10) === realStep);
     });
     document.querySelectorAll('.onboarding-dot').forEach(el => {
-        el.classList.toggle('active', parseInt(el.dataset.dot, 10) === _onboardingStep);
+        const dotStep = parseInt(el.dataset.dot, 10);
+        const visible = _onboardingVisibleSteps.includes(dotStep);
+        el.style.display = visible ? '' : 'none';
+        el.classList.toggle('active', dotStep === realStep);
     });
 
     const backBtn = document.getElementById('onboarding-back-btn');
     const nextBtn = document.getElementById('onboarding-next-btn');
     const skipBtn = document.getElementById('onboarding-skip-btn');
     if (backBtn) backBtn.style.visibility = _onboardingStep === 0 ? 'hidden' : 'visible';
-    const isLast = _onboardingStep === ONBOARDING_STEPS - 1;
+    const isLast = _onboardingStep === _onboardingVisibleSteps.length - 1;
     if (nextBtn) nextBtn.textContent = isLast ? 'Começar' : 'Próximo';
     if (skipBtn) skipBtn.style.visibility = isLast ? 'hidden' : 'visible';
 }
 
 function onboardingNext() {
-    if (_onboardingStep >= ONBOARDING_STEPS - 1) { onboardingFinish(); return; }
+    if (_onboardingStep >= _onboardingVisibleSteps.length - 1) { onboardingFinish(); return; }
     _onboardingStep++;
     onboardingRenderStep();
 }
@@ -8926,6 +8938,7 @@ function onboardingFinish() {
 }
 
 function openOnboarding() {
+    onboardingComputeVisibleSteps();
     _onboardingStep = 0;
     onboardingRenderStep();
     document.getElementById('onboarding-overlay').classList.remove('hidden');
