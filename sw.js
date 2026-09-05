@@ -16,7 +16,7 @@
 // ══════════════════════════════════════════════════════════════
 'use strict';
 
-const SW_VERSION     = 'v2.0'; // incremente para forçar atualização do cache
+const SW_VERSION     = 'v1.0'; // incremente para forçar atualização do cache
 const CACHE_NAME     = SW_VERSION;
 const SHELL_CACHE    = CACHE_NAME + '-shell';
 const API_CACHE      = CACHE_NAME + '-api';

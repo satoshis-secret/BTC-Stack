@@ -10094,11 +10094,38 @@ async function backupImport() {
 // INIT
 // ══════════════════════════════════════════════════════════════
 // Carrega dados diretamente sem senha
+// Detecta se o app está rodando dentro de um WebView nativo empacotado
+// (Median.co, GoNative, ou qualquer outro wrapper similar), em vez de num
+// navegador de verdade. WebViews não implementam notificações reais do
+// sistema (Notification API / ServiceWorkerRegistration.showNotification),
+// então nesse contexto a aba "Alertas" só conseguiria mostrar o toast
+// interno — sem avisar o usuário com o app fechado/minimizado, que é o
+// motivo de ela existir. Por isso ela fica oculta quando empacotado.
+function isWrappedWebView() {
+    // 1) Median.co injeta um objeto global "median" com a bridge nativa.
+    if (typeof window.median !== 'undefined') return true;
+    // 2) Token padrão que o Android WebView injeta no user-agent
+    //    (algo como "...Version/4.0 Chrome/123.0.0.0 Mobile Safari/537.36"
+    //    com "wv" logo após "Android X;" — o Chrome de verdade nunca tem
+    //    esse token). Pega outros wrappers além do Median (GoNative,
+    //    Appilix, Cordova/Capacitor com WebView padrão, etc.).
+    if (/\bwv\)/.test(navigator.userAgent)) return true;
+    return false;
+}
+
+function applyWebViewRestrictions() {
+    if (!isWrappedWebView()) return;
+    const alertasDrawerItem = document.getElementById('drawer-alertas');
+    if (alertasDrawerItem) alertasDrawerItem.style.display = 'none';
+}
+
 (async function initApp() {
     const stored = await loadAportesAsync();
     if (stored.length > 0) { aportes = stored; }
     renderPortfolio();
 })();
+
+applyWebViewRestrictions();
 
 // Initial render
 alertLoad();
