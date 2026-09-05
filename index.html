@@ -3320,6 +3320,17 @@ html.theme-light .dca-result-card { background: #fff; }
     </div>
 </div>
 
+<div class="modal-overlay hidden" id="apk-update-modal-overlay">
+    <div class="modal" style="max-width:440px;gap:14px;">
+        <div class="modal-title"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;margin-right:5px;flex-shrink:0"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Nova versão disponível</div>
+        <p class="modal-sub" id="apk-update-modal-text">Uma nova versão do app foi publicada.</p>
+        <div class="modal-actions" style="margin-top:4px">
+            <button class="btn-secondary" onclick="dismissApkUpdateModal()">Agora não</button>
+            <button class="btn-primary" id="apk-update-download-btn" onclick="downloadApkUpdate()">Baixar e instalar</button>
+        </div>
+    </div>
+</div>
+
 <div class="modal-overlay hidden" id="onboarding-overlay">
     <div class="modal onboarding-modal">
         <button class="onboarding-skip" id="onboarding-skip-btn" onclick="onboardingSkip()">Pular</button>
@@ -10142,6 +10153,65 @@ function applyWebViewRestrictions() {
     if (alertasDrawerItem) alertasDrawerItem.style.display = 'none';
 }
 
+// ── Aviso de nova versão do APK (Median) ─────────────────────────
+// Diferente do banner de atualização do conteúdo web (que é automático via
+// Service Worker), uma nova versão do APK só existe quando você publica um
+// novo build no Median/GitHub — precisa ser baixado e instalado manualmente
+// pelo usuário. Este bloco compara a versão do APK instalado (via
+// median.deviceInfo()) com a versão mais recente publicada em
+// apk-version.json, e mostra um modal no centro da tela quando há uma nova.
+const APK_UPDATE_DISMISS_KEY = 'btcstack_apk_update_dismissed_build';
+let _apkUpdateInfo = null;
+
+async function checkForApkUpdate() {
+    if (typeof median === 'undefined' || !median.deviceInfo) return; // só faz sentido dentro do Median
+    let deviceInfo;
+    try {
+        deviceInfo = await median.deviceInfo();
+    } catch {
+        return; // bridge indisponível nesta versão/plataforma
+    }
+    const installedBuild = Number(deviceInfo?.appBuild);
+    if (!installedBuild) return;
+
+    let remote;
+    try {
+        const res = await fetch(`./apk-version.json?t=${Date.now()}`, { cache: 'no-store' });
+        if (!res.ok) return;
+        remote = await res.json();
+    } catch {
+        return; // sem internet ou arquivo indisponível — falha silenciosa
+    }
+
+    const latestBuild = Number(remote?.latestBuild);
+    if (!latestBuild || latestBuild <= installedBuild) return;
+
+    // Já dispensou este build específico? Não insiste de novo até sair um build mais novo ainda.
+    const dismissed = Number(localStorage.getItem(APK_UPDATE_DISMISS_KEY) || 0);
+    if (dismissed >= latestBuild) return;
+
+    _apkUpdateInfo = remote;
+    const text = document.getElementById('apk-update-modal-text');
+    if (text) {
+        text.innerHTML = `Versão <strong>${remote.latestVersion || latestBuild}</strong> disponível` +
+            (remote.notes ? `.<br><span style="color:var(--text-muted);font-size:.85em">${remote.notes}</span>` : '.');
+    }
+    document.getElementById('apk-update-modal-overlay')?.classList.remove('hidden');
+}
+
+function dismissApkUpdateModal() {
+    if (_apkUpdateInfo?.latestBuild) {
+        try { localStorage.setItem(APK_UPDATE_DISMISS_KEY, String(_apkUpdateInfo.latestBuild)); } catch {}
+    }
+    document.getElementById('apk-update-modal-overlay')?.classList.add('hidden');
+}
+
+function downloadApkUpdate() {
+    const url = _apkUpdateInfo?.downloadUrl || 'https://github.com/satoshis-secret/BTC-Stack/releases/latest';
+    window.open(url, '_blank');
+    document.getElementById('apk-update-modal-overlay')?.classList.add('hidden');
+}
+
 (async function initApp() {
     const stored = await loadAportesAsync();
     if (stored.length > 0) { aportes = stored; }
@@ -10149,6 +10219,7 @@ function applyWebViewRestrictions() {
 })();
 
 applyWebViewRestrictions();
+checkForApkUpdate();
 
 // Initial render
 alertLoad();
