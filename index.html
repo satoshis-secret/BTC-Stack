@@ -9971,6 +9971,8 @@ async function backupExport() {
         const date     = todayLocalStr();
         const fileName = `btcportfolio-${date}.btcbak`;
 
+        let usedPicker = false;
+
         if (window.showSaveFilePicker) {
             try {
                 const fileHandle = await window.showSaveFilePicker({
@@ -9980,12 +9982,17 @@ async function backupExport() {
                 const writable = await fileHandle.createWritable();
                 await writable.write(blob);
                 await writable.close();
+                usedPicker = true;
             } catch (pickerErr) {
-                if (pickerErr.name !== 'AbortError') throw pickerErr;
-                return; // usuário cancelou — não fechar modal nem exibir toast
+                // Se AbortError, usuário cancelou — não fazer nada
+                if (pickerErr.name === 'AbortError') return;
+                // Qualquer outro erro (tipo "User activation required" no Android): cai no fallback
+                console.log('showSaveFilePicker falhou, usando fallback:', pickerErr.message);
             }
-        } else {
-            // Fallback: download direto para a pasta padrão do navegador
+        }
+
+        // Fallback: download direto para a pasta padrão do navegador (funciona em Android/iOS)
+        if (!usedPicker) {
             const url = URL.createObjectURL(blob);
             const a   = document.createElement('a');
             a.href     = url;
