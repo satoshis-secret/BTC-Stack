@@ -3247,6 +3247,10 @@ html.theme-light .dca-result-card { background: #fff; }
                 style="flex:1;padding:9px;border:none;cursor:pointer;font-family:var(--font-display);font-size:.82rem;font-weight:700;transition:all .2s;background:transparent;color:#666;">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;margin-right:5px;flex-shrink:0"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Importar
             </button>
+            <button id="bktab-debug" onclick="backupShowTab('debug')"
+                style="flex:1;padding:9px;border:none;cursor:pointer;font-family:var(--font-display);font-size:.82rem;font-weight:700;transition:all .2s;background:transparent;color:#666;">
+                🐛 Debug
+            </button>
         </div>
 
 
@@ -3305,6 +3309,21 @@ html.theme-light .dca-result-card { background: #fff; }
             <div class="modal-actions" style="margin-top:4px">
                 <button class="btn-secondary" onclick="closeBackupModal()">Cancelar</button>
                 <button class="btn-primary" onclick="backupImport()"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;margin-right:5px;flex-shrink:0"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Importar Backup</button>
+            </div>
+        </div>
+
+        <div id="bk-debug-section" style="display:none">
+            <p style="font-family:var(--font-display);font-size:.82rem;color:#888;line-height:1.5;margin-bottom:12px;">
+                🐛 <strong>Debug Logs</strong> — Histórico de operações de backup
+            </p>
+            <div id="bk-debug-logs" 
+                style="background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:12px;max-height:200px;overflow-y:auto;font-family:monospace;font-size:.75rem;line-height:1.6;">
+                <div style="color:#666;opacity:.6;">Nenhum log ainda…</div>
+            </div>
+            <div class="modal-actions" style="margin-top:12px;gap:6px;">
+                <button class="btn-secondary" onclick="backupDebugClear()" style="flex:1;font-size:.8rem;">🗑️ Limpar</button>
+                <button class="btn-secondary" onclick="backupDebugCopy()" style="flex:1;font-size:.8rem;">📋 Copiar</button>
+                <button class="btn-secondary" onclick="closeBackupModal()" style="flex:1;font-size:.8rem;">✕ Fechar</button>
             </div>
         </div>
     </div>
@@ -9910,19 +9929,87 @@ document.getElementById('backup-modal-overlay').addEventListener('click', functi
 
 function backupShowTab(tab) {
     const isExport = tab === 'export';
+    const isDebug = tab === 'debug';
     document.getElementById('bk-export-section').style.display = isExport ? '' : 'none';
-    document.getElementById('bk-import-section').style.display = isExport ? 'none' : '';
+    document.getElementById('bk-import-section').style.display = isExport || isDebug ? 'none' : '';
+    document.getElementById('bk-debug-section').style.display = isDebug ? '' : 'none';
+    
     const btnE = document.getElementById('bktab-export');
     const btnI = document.getElementById('bktab-import');
-    [btnE, btnI].forEach(b => { b.style.background = 'transparent'; b.style.color = '#666'; });
-    const activeBtn = isExport ? btnE : btnI;
-    activeBtn.style.background = 'var(--btc-dim)';
-    activeBtn.style.color      = 'var(--btc)';
+    const btnD = document.getElementById('bktab-debug');
+    
+    [btnE, btnI, btnD].forEach(b => { 
+        if (b) { b.style.background = 'transparent'; b.style.color = '#666'; }
+    });
+    
+    const activeBtn = isExport ? btnE : isDebug ? btnD : btnI;
+    if (activeBtn) {
+        activeBtn.style.background = 'var(--btc-dim)';
+        activeBtn.style.color = 'var(--btc)';
+    }
 }
 
 function backupToggleVis(id) {
     const inp = document.getElementById(id);
     inp.type = inp.type === 'password' ? 'text' : 'password';
+}
+
+// ===== SISTEMA DE DEBUG LOGGING =====
+let _backupLogs = [];
+
+function backupAddLog(msg, type = 'info') {
+    const timestamp = new Date().toLocaleTimeString();
+    const logEntry = { msg, type, timestamp };
+    _backupLogs.push(logEntry);
+    
+    const logsDiv = document.getElementById('bk-debug-logs');
+    if (!logsDiv) return;
+    
+    // Cores por tipo
+    const colors = {
+        'success': '#0f0',
+        'error': '#f44',
+        'warn': '#fa0',
+        'info': '#88f'
+    };
+    
+    const color = colors[type] || '#888';
+    const icons = {
+        'success': '✓',
+        'error': '✕',
+        'warn': '⚠',
+        'info': 'ℹ'
+    };
+    const icon = icons[type] || '•';
+    
+    const line = document.createElement('div');
+    line.style.color = color;
+    line.style.marginBottom = '4px';
+    line.textContent = `[${timestamp}] ${icon} ${msg}`;
+    
+    // Se primeira vez, limpar placeholder
+    if (logsDiv.children.length === 1 && logsDiv.children[0].textContent.includes('Nenhum log')) {
+        logsDiv.innerHTML = '';
+    }
+    
+    logsDiv.appendChild(line);
+    logsDiv.scrollTop = logsDiv.scrollHeight;
+    
+    // Log também no console
+    console[type === 'error' ? 'error' : type === 'warn' ? 'warn' : 'log'](`[${type.toUpperCase()}] ${msg}`);
+}
+
+function backupDebugClear() {
+    _backupLogs = [];
+    const logsDiv = document.getElementById('bk-debug-logs');
+    logsDiv.innerHTML = '<div style="color:#666;opacity:.6;">Nenhum log ainda…</div>';
+}
+
+function backupDebugCopy() {
+    const text = _backupLogs.map(l => `[${l.timestamp}] [${l.type.toUpperCase()}] ${l.msg}`).join('\n');
+    navigator.clipboard.writeText(text || 'Nenhum log').then(() => {
+        showToast('✓ Logs copiados para clipboard!', 'success');
+    });
 }
 
 function backupStrengthUpdate() {
@@ -9945,17 +10032,21 @@ async function backupExport() {
     const err = document.getElementById('bk-export-error');
     err.textContent = '';
 
-    if (!pw1 || pw1.length < 6) { err.textContent = 'Senha deve ter no mínimo 6 caracteres.'; return; }
-    if (pw1 !== pw2) { err.textContent = 'As senhas não coincidem.'; return; }
+    if (!pw1 || pw1.length < 6) { err.textContent = 'Senha deve ter no mínimo 6 caracteres.'; backupAddLog('Senha inválida (< 6 caracteres)', 'error'); return; }
+    if (pw1 !== pw2) { err.textContent = 'As senhas não coincidem.'; backupAddLog('Senhas não coincidem', 'error'); return; }
 
     try {
+        backupAddLog('Iniciando exportação de backup…', 'info');
+        
         // Deriva chave temporária só para o backup (salt novo a cada export)
         const saltBytes = crypto.getRandomValues(new Uint8Array(32));
         const saltB64   = btoa(String.fromCharCode(...saltBytes));
         const key       = await deriveAesKeyFromPassword(pw1, saltB64);
+        backupAddLog('Chave derivada com sucesso (PBKDF2)', 'success');
 
         const plain   = JSON.stringify({ aportes, vendas, exportedAt: Date.now(), v: 1 });
         const cipher  = await aesGcmEncrypt(key, plain);
+        backupAddLog(`Dados criptografados (${aportes.length} aportes, ${vendas.length} saídas)`, 'success');
 
         const payload = JSON.stringify({
             v: 1,
@@ -9969,13 +10060,22 @@ async function backupExport() {
         const blob     = new Blob([payload], { type: 'application/json' });
         const date     = todayLocalStr();
         const fileName = `btc-stack-${date}.btcbak`;
+        
+        backupAddLog(`Arquivo: ${fileName} (${(blob.size / 1024).toFixed(1)} KB)`, 'info');
 
         const isAndroidApp = /android/i.test(navigator.userAgent);
+        if (isAndroidApp) {
+            backupAddLog('Plataforma: Android (pula File System Access API)', 'info');
+        } else {
+            backupAddLog('Plataforma: Desktop/Web', 'info');
+        }
+        
         let downloadSuccess = false;
 
         // Método 1: File System Access API (Desktop)
         if (window.showSaveFilePicker && !isAndroidApp) {
             try {
+                backupAddLog('Tentando: File System Access API…', 'info');
                 const fileHandle = await window.showSaveFilePicker({
                     suggestedName: fileName,
                     types: [{ description: 'BTC Stack Backup', accept: { 'application/json': ['.btcbak'] } }],
@@ -9984,16 +10084,20 @@ async function backupExport() {
                 await writable.write(blob);
                 await writable.close();
                 downloadSuccess = true;
-                console.log('✓ Download via File System Access API');
+                backupAddLog('✓ File System Access API funcionou!', 'success');
             } catch (pickerErr) {
-                if (pickerErr.name === 'AbortError') return;
-                console.log('File System Access API falhou:', pickerErr.message);
+                if (pickerErr.name === 'AbortError') {
+                    backupAddLog('Cancelado pelo usuário', 'warn');
+                    return;
+                }
+                backupAddLog(`File System Access falhou: ${pickerErr.message}`, 'warn');
             }
         }
 
         // Método 2: Blob URL com <a> tag (mais comum)
         if (!downloadSuccess) {
             try {
+                backupAddLog('Tentando: Blob URL + <a> tag…', 'info');
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = url;
@@ -10011,15 +10115,16 @@ async function backupExport() {
                 }, 500);
                 
                 downloadSuccess = true;
-                console.log('✓ Download via Blob URL iniciado');
+                backupAddLog('✓ Blob URL funcionou!', 'success');
             } catch (blobErr) {
-                console.log('Blob URL falhou:', blobErr.message);
+                backupAddLog(`Blob URL falhou: ${blobErr.message}`, 'warn');
             }
         }
 
         // Método 3: Data URL com iframe (WebView Android compatível)
         if (!downloadSuccess) {
             try {
+                backupAddLog('Tentando: Data URL + iframe…', 'info');
                 const reader = new FileReader();
                 reader.onload = () => {
                     const dataUrl = reader.result;
@@ -10028,6 +10133,7 @@ async function backupExport() {
                     iframe.src = dataUrl;
                     iframe.download = fileName;
                     document.body.appendChild(iframe);
+                    backupAddLog('✓ Data URL + iframe funcionou!', 'success');
                     
                     setTimeout(() => {
                         try {
@@ -10037,44 +10143,48 @@ async function backupExport() {
                 };
                 reader.readAsDataURL(blob);
                 downloadSuccess = true;
-                console.log('✓ Download via Data URL + iframe iniciado');
             } catch (iframeErr) {
-                console.log('Data URL + iframe falhou:', iframeErr.message);
+                backupAddLog(`Data URL falhou: ${iframeErr.message}`, 'warn');
             }
         }
 
         // Método 4: Window.open com Data URL (último recurso para WebView)
         if (!downloadSuccess) {
             try {
+                backupAddLog('Tentando: window.open (último recurso)…', 'info');
                 const reader = new FileReader();
                 reader.onload = () => {
                     const dataUrl = reader.result;
-                    // Tenta abrir em nova aba para download
                     window.open(dataUrl, '_blank');
+                    backupAddLog('✓ window.open acionado (verifique abas/downloads)', 'success');
                 };
                 reader.readAsDataURL(blob);
                 downloadSuccess = true;
-                console.log('✓ Download via window.open iniciado (verifique nova aba/pop-up)');
             } catch (openErr) {
-                console.log('window.open falhou:', openErr.message);
+                backupAddLog(`window.open falhou: ${openErr.message}`, 'error');
             }
+        }
+
+        if (!downloadSuccess) {
+            backupAddLog('⚠️ Nenhum método de download funcionou. Verifique permissões.', 'error');
+            err.textContent = 'Nenhum método de download disponível. Verifique permissões no Median.co.';
+        } else {
+            backupAddLog('Download iniciado com sucesso!', 'success');
         }
 
         closeBackupModal();
         const vendasSuffix = vendas.length > 0 ? ` e ${vendas.length} saída(s)` : '';
+        const toastMsg = `✓ Backup exportado com ${aportes.length} aporte(s)${vendasSuffix}!`;
         
-        // Toast com instruções adicionais
-        let toastMsg = `✓ Backup exportado com ${aportes.length} aporte(s)${vendasSuffix}!`;
         if (isAndroidApp) {
-            toastMsg += '\n📱 Verifique Downloads ou notificação de download';
+            backupAddLog('📱 Verifique pasta Downloads ou notificação de download', 'info');
         }
         
         showToast(toastMsg, 'success');
-        console.log('Backup exportado com sucesso. Download status:', downloadSuccess);
         
     } catch(e) {
         err.textContent = 'Erro ao exportar: ' + e.message;
-        console.error('Erro ao exportar backup:', e);
+        backupAddLog(`ERRO: ${e.message}`, 'error');
     }
 }
 
