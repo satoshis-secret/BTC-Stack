@@ -9966,14 +9966,15 @@ async function backupExport() {
             data: cipher,
         });
 
-        // Download do arquivo — usa File System Access API se disponível (permite escolher pasta)
         const blob     = new Blob([payload], { type: 'application/json' });
         const date     = todayLocalStr();
-        const fileName = `btcportfolio-${date}.btcbak`;
+        const fileName = `btc-stack-${date}.btcbak`;
 
-        let usedPicker = false;
+        const isAndroidApp = /android/i.test(navigator.userAgent);
+        let downloadSuccess = false;
 
-        if (window.showSaveFilePicker) {
+        // Método 1: File System Access API (Desktop)
+        if (window.showSaveFilePicker && !isAndroidApp) {
             try {
                 const fileHandle = await window.showSaveFilePicker({
                     suggestedName: fileName,
@@ -9982,32 +9983,98 @@ async function backupExport() {
                 const writable = await fileHandle.createWritable();
                 await writable.write(blob);
                 await writable.close();
-                usedPicker = true;
+                downloadSuccess = true;
+                console.log('✓ Download via File System Access API');
             } catch (pickerErr) {
-                // Se AbortError, usuário cancelou — não fazer nada
                 if (pickerErr.name === 'AbortError') return;
-                // Qualquer outro erro (tipo "User activation required" no Android): cai no fallback
-                console.log('showSaveFilePicker falhou, usando fallback:', pickerErr.message);
+                console.log('File System Access API falhou:', pickerErr.message);
             }
         }
 
-        // Fallback: download direto para a pasta padrão do navegador (funciona em Android/iOS)
-        if (!usedPicker) {
-            const url = URL.createObjectURL(blob);
-            const a   = document.createElement('a');
-            a.href     = url;
-            a.download = fileName;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
+        // Método 2: Blob URL com <a> tag (mais comum)
+        if (!downloadSuccess) {
+            try {
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = fileName;
+                a.style.display = 'none';
+                document.body.appendChild(a);
+                a.click();
+                
+                // Garante limpeza
+                setTimeout(() => {
+                    try {
+                        document.body.removeChild(a);
+                        URL.revokeObjectURL(url);
+                    } catch(e) {}
+                }, 500);
+                
+                downloadSuccess = true;
+                console.log('✓ Download via Blob URL iniciado');
+            } catch (blobErr) {
+                console.log('Blob URL falhou:', blobErr.message);
+            }
+        }
+
+        // Método 3: Data URL com iframe (WebView Android compatível)
+        if (!downloadSuccess) {
+            try {
+                const reader = new FileReader();
+                reader.onload = () => {
+                    const dataUrl = reader.result;
+                    const iframe = document.createElement('iframe');
+                    iframe.style.display = 'none';
+                    iframe.src = dataUrl;
+                    iframe.download = fileName;
+                    document.body.appendChild(iframe);
+                    
+                    setTimeout(() => {
+                        try {
+                            document.body.removeChild(iframe);
+                        } catch(e) {}
+                    }, 1000);
+                };
+                reader.readAsDataURL(blob);
+                downloadSuccess = true;
+                console.log('✓ Download via Data URL + iframe iniciado');
+            } catch (iframeErr) {
+                console.log('Data URL + iframe falhou:', iframeErr.message);
+            }
+        }
+
+        // Método 4: Window.open com Data URL (último recurso para WebView)
+        if (!downloadSuccess) {
+            try {
+                const reader = new FileReader();
+                reader.onload = () => {
+                    const dataUrl = reader.result;
+                    // Tenta abrir em nova aba para download
+                    window.open(dataUrl, '_blank');
+                };
+                reader.readAsDataURL(blob);
+                downloadSuccess = true;
+                console.log('✓ Download via window.open iniciado (verifique nova aba/pop-up)');
+            } catch (openErr) {
+                console.log('window.open falhou:', openErr.message);
+            }
         }
 
         closeBackupModal();
         const vendasSuffix = vendas.length > 0 ? ` e ${vendas.length} saída(s)` : '';
-        showToast(`✓ Backup exportado com ${aportes.length} aporte(s)${vendasSuffix}!`, 'success');
+        
+        // Toast com instruções adicionais
+        let toastMsg = `✓ Backup exportado com ${aportes.length} aporte(s)${vendasSuffix}!`;
+        if (isAndroidApp) {
+            toastMsg += '\n📱 Verifique Downloads ou notificação de download';
+        }
+        
+        showToast(toastMsg, 'success');
+        console.log('Backup exportado com sucesso. Download status:', downloadSuccess);
+        
     } catch(e) {
         err.textContent = 'Erro ao exportar: ' + e.message;
+        console.error('Erro ao exportar backup:', e);
     }
 }
 
