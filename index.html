@@ -152,8 +152,6 @@ html.theme-light .drawer-item { color: #374151; background: #fff; border: 1px so
 html.theme-light .drawer-item:hover { background: #eef0f4; border-color: #d8dce4; color: #111827; }
 html.theme-light .drawer-item.active { background: var(--btc-dim); border-color: #f7931a44; }
 html.theme-light .drawer-item-icon { background: var(--surface2); border-color: var(--border2); }
-html.theme-light .nostr-overlay { background: #f2f4f7; }
-html.theme-light .nostr-card { background: #fff; border-color: #f7931a33; }
 html.theme-light .form-input { background: var(--surface2); border-color: var(--border2); color: var(--text); }
 html.theme-light .form-input::placeholder { color: #bfc5d0; }
 html.theme-light .search-input { background: var(--surface2); color: var(--text); border-color: var(--border2); }
@@ -174,8 +172,8 @@ html.theme-light .toast.success { color: var(--green); border-color: #00965a33; 
 html.theme-light .toast.error { color: var(--red); border-color: #e0202033; }
 html.theme-light .halving-unit { background: var(--surface2); border-color: var(--border2); }
 html.theme-light .cycle-card { background: var(--surface); border-color: var(--border); }
-html.theme-light .nostr-input { background: var(--surface2); color: var(--text); border-color: var(--border2); }
-html.theme-light .nostr-input::placeholder { color: #bfc5d0; }
+html.theme-light .field-input { background: var(--surface2); color: var(--text); border-color: var(--border2); }
+html.theme-light .field-input::placeholder { color: #bfc5d0; }
 html.theme-light .profile-input { background: var(--surface2); }
 html.theme-light .conv-input { color: var(--text); }
 html.theme-light .conv-input::placeholder { color: #bfc5d0; }
@@ -240,19 +238,11 @@ html.theme-light .confirm-title { color: #111827; }
 html.theme-light .confirm-body { color: #6b7280; }
 html.theme-light .confirm-btn-cancel { color: #6b7280; border-color: var(--border2); }
 html.theme-light .confirm-btn-cancel:hover { color: #374151; border-color: #9ca3af; }
-html.theme-light .nostr-logo-title { color: #111827; }
-html.theme-light .nostr-label { color: #374151; }
-html.theme-light .nostr-tab { color: #6b7280; }
-html.theme-light .nostr-tab.active { background: var(--surface); color: #111827; }
-html.theme-light .nostr-hint { color: #6b7280; }
-html.theme-light .nostr-divider { color: #9ca3af; }
+html.theme-light .field-label { color: #374151; }
 html.theme-light .btn-guest { color: #9ca3af; border-color: var(--border2); }
 html.theme-light .btn-guest:hover { color: #6b7280; border-color: #9ca3af; background: var(--surface2); }
-html.theme-light .nostr-guest-divider { color: #9ca3af; }
-html.theme-light .nostr-badge { color: #7B2FFF; }
 html.theme-light .guest-badge { color: #6b7280; border-color: var(--border2); background: var(--surface2); }
 html.theme-light .profile-avatar-name { color: #111827; }
-html.theme-light .btn-nostr-danger { color: var(--red); }
 html.theme-light .alert-section-title-text { color: #111827; }
 html.theme-light .alert-section-subtitle { color: #6b7280; }
 html.theme-light .alert-dir-btn { color: #6b7280; }
@@ -314,9 +304,6 @@ html.theme-light .drawer-item-icon { background: var(--surface2); border-color: 
 html.theme-light .drawer-item:hover .drawer-item-icon { background: #e5e7eb; border-color: #c8cdd8; }
 html.theme-light .drawer-item-label { color: #111827; }
 html.theme-light .drawer-item-desc { color: #6b7280; }
-
-html.theme-light .nostr-overlay { background: #f2f4f7; }
-html.theme-light .nostr-card { background: #fff; }
 
 html.theme-light .aportes-count { background: var(--btc-dim); color: var(--btc); border-color: #f7931a44; }
 
@@ -2413,15 +2400,6 @@ html.theme-light .update-banner-msg { color: #1f2937; }
     margin-top: 6px;
 }
 
-.nostr-enc-badge {
-    font-size: .7rem; font-weight: 700; padding: 2px 8px;
-    border-radius: 20px; margin-left: 4px;
-    display: inline-flex; align-items: center; gap: 4px;
-    vertical-align: middle;
-}
-.nostr-enc-badge.enc { background: #00e87a18; color: var(--green); border: 1px solid #00e87a33; }
-.nostr-enc-badge.plain { background: #f7931a18; color: var(--btc); border: 1px solid #f7931a33; }
-
 @keyframes pulse-val { 0%{opacity:1} 50%{opacity:.55} 100%{opacity:1} }
 @keyframes fadeIn    { from{opacity:0;transform:translateY(-4px)} to{opacity:1;transform:none} }
 .live-pulse { animation: pulse-val .6s ease-in-out; }
@@ -2593,15 +2571,6 @@ textarea.profile-input { resize: none; min-height: 68px; line-height: 1.5; font-
     flex-wrap: wrap;
 }
 
-.btn-nostr-danger {
-    background: transparent; border: 1px solid #ff4d4d33;
-    border-radius: 8px; color: #ff4d4d66;
-    font-family: var(--font-display); font-size: .78rem;
-    font-weight: 700; padding: 8px 14px;
-    cursor: pointer; transition: all .2s; margin-right: auto;
-}
-.btn-nostr-danger:hover { border-color: var(--red); color: var(--red); background: var(--red-dim); }
-
 .table-controls { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 12px 24px 0; }
 .search-input {
     flex: 1; min-width: 140px;
@@ -2617,7 +2586,6 @@ textarea.profile-input { resize: none; min-height: 68px; line-height: 1.5; font-
 .sort-icon { font-size: .5rem; margin-left: 1px; opacity: .3; }
 .sort-icon.asc  { opacity: 1; color: var(--btc); }
 .sort-icon.desc { opacity: 1; color: var(--btc); }
-
 
 
 .edit-modal-overlay {
@@ -2637,66 +2605,12 @@ textarea.profile-input { resize: none; min-height: 68px; line-height: 1.5; font-
 .edit-modal .form-grid { margin-bottom: 0; }
 .edit-modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
 
-.nostr-overlay {
-    position: fixed; inset: 0;
-    background: #080808;
-    display: flex; align-items: center; justify-content: center;
-    z-index: 9000; padding: 20px;
-    animation: fadeIn .3s ease;
-}
-.nostr-overlay.hidden { display: none; }
-
-.nostr-card {
-    background: var(--surface);
-    border: 1px solid #f7931a33;
-    border-radius: 24px;
-    padding: 40px 36px 36px;
-    width: 100%; max-width: 440px;
-    display: flex; flex-direction: column; gap: 24px;
-    box-shadow: 0 0 80px #f7931a10;
-}
-
-.nostr-logo {
-    display: flex; align-items: center; gap: 14px;
-}
-.nostr-logo-icon {
-    width: 52px; height: 52px;
-    background: linear-gradient(135deg, #7B2FFF, #a855f7);
-    border-radius: 14px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 1.5rem; flex-shrink: 0;
-    box-shadow: 0 0 24px #7B2FFF44;
-}
-.nostr-logo-text { display: flex; flex-direction: column; gap: 2px; }
-.nostr-logo-title { font-size: 1.4rem; font-weight: 800; color: #fff; letter-spacing: -.02em; }
-.nostr-logo-subtitle { font-size: .82rem; color: #888; }
-
-.nostr-tabs {
-    display: flex; background: var(--surface2);
-    border-radius: 10px; padding: 4px; gap: 4px;
-}
-.nostr-tab {
-    flex: 1; padding: 9px; border-radius: 7px;
-    border: none; background: transparent;
-    color: #777; font-family: var(--font-display);
-    font-size: .88rem; font-weight: 700; cursor: pointer;
-    transition: all .2s;
-}
-.nostr-tab.active {
-    background: var(--surface);
-    color: #fff;
-    box-shadow: 0 1px 4px rgba(0,0,0,.4);
-}
-
-.nostr-section { display: flex; flex-direction: column; gap: 14px; }
-.nostr-section.hidden { display: none; }
-
-.nostr-label {
+.field-label {
     font-size: .8rem; font-weight: 700; color: #bbb;
     text-transform: uppercase; letter-spacing: .04em;
     margin-bottom: -6px;
 }
-.nostr-input {
+.field-input {
     background: var(--surface2);
     border: 1.5px solid var(--border2);
     border-radius: 10px;
@@ -2707,58 +2621,8 @@ textarea.profile-input { resize: none; min-height: 68px; line-height: 1.5; font-
     transition: border-color .2s;
     word-break: break-all;
 }
-.nostr-input:focus { border-color: #7B2FFF88; }
-.nostr-input.invalid { border-color: var(--red) !important; }
-
-.nostr-divider {
-    display: flex; align-items: center; gap: 12px;
-    color: #444; font-size: .78rem;
-}
-.nostr-divider::before, .nostr-divider::after {
-    content: ''; flex: 1; height: 1px; background: var(--border);
-}
-
-.btn-nostr-ext {
-    background: linear-gradient(135deg, #7B2FFF22, #a855f722);
-    border: 1px solid #7B2FFF55;
-    border-radius: 10px; color: #c084fc;
-    font-family: var(--font-display); font-size: .9rem;
-    font-weight: 700; padding: 13px 20px;
-    cursor: pointer; transition: all .2s;
-    display: flex; align-items: center; justify-content: center; gap: 8px;
-}
-.btn-nostr-ext:hover {
-    background: linear-gradient(135deg, #7B2FFF44, #a855f744);
-    border-color: #a855f7; color: #e879f9;
-}
-.btn-nostr-ext:disabled { opacity: .4; cursor: not-allowed; }
-
-.btn-nostr-primary {
-    background: linear-gradient(135deg, #7B2FFF, #a855f7);
-    border: none; border-radius: 10px; color: #fff;
-    font-family: var(--font-display); font-size: .92rem;
-    font-weight: 800; padding: 14px 28px;
-    cursor: pointer; transition: opacity .2s, transform .1s;
-    box-shadow: 0 4px 20px #7B2FFF44;
-}
-.btn-nostr-primary:hover { opacity: .9; }
-.btn-nostr-primary:active { transform: scale(.97); }
-.btn-nostr-primary:disabled { opacity: .35; cursor: not-allowed; }
-
-.nostr-hint {
-    font-size: .78rem; color: #666; line-height: 1.5; text-align: center;
-}
-.nostr-hint a { color: #a855f7; text-decoration: none; }
-.nostr-hint a:hover { text-decoration: underline; }
-
-.nostr-guest-divider {
-    display: flex; align-items: center; gap: 12px;
-    color: #333; font-size: .75rem; font-weight: 700;
-    text-transform: uppercase; letter-spacing: .05em;
-    margin-top: -8px;
-}
-.nostr-guest-divider::before,
-.nostr-guest-divider::after { content: ''; flex: 1; height: 1px; background: #222; }
+.field-input:focus { border-color: #7B2FFF88; }
+.field-input.invalid { border-color: var(--red) !important; }
 
 .btn-guest {
     background: transparent;
@@ -2780,39 +2644,6 @@ textarea.profile-input { resize: none; min-height: 68px; line-height: 1.5; font-
     width: fit-content;
 }
 .guest-badge:hover { border-color: #444; color: #888; }
-
-.nostr-error {
-    background: var(--red-dim); border: 1px solid var(--red);
-    border-radius: 8px; padding: 10px 14px;
-    font-size: .82rem; color: var(--red);
-    display: none;
-}
-.nostr-error.visible { display: block; }
-
-.nostr-badge {
-    display: flex; align-items: center; gap: 8px;
-    background: #7B2FFF18; border: 1px solid #7B2FFF44;
-    border-radius: 8px; padding: 7px 14px;
-    font-size: .82rem; font-weight: 700; color: #c084fc;
-    cursor: pointer; transition: all .2s; white-space: nowrap;
-}
-.nostr-badge:hover { background: #7B2FFF33; border-color: #a855f7; }
-.nostr-badge .nostr-dot {
-    width: 7px; height: 7px; border-radius: 50%;
-    background: #7B2FFF; flex-shrink: 0;
-    box-shadow: 0 0 6px #7B2FFF;
-}
-
-.nostr-sync-text { font-size: .75rem; color: #c084fc; }
-.nostr-sync-actions { display: flex; gap: 8px; }
-.btn-nostr-sm {
-    background: #7B2FFF22; border: 1px solid #7B2FFF44;
-    border-radius: 6px; color: #c084fc;
-    font-family: var(--font-display); font-size: .75rem;
-    font-weight: 700; padding: 5px 12px;
-    cursor: pointer; transition: all .15s;
-}
-.btn-nostr-sm:hover { background: #7B2FFF44; border-color: #a855f7; }
 
 @keyframes spin { to { transform: rotate(360deg); } }
 .loading-spin { display: inline-block; animation: spin .7s linear infinite; }
@@ -2863,16 +2694,6 @@ textarea.profile-input { resize: none; min-height: 68px; line-height: 1.5; font-
     min-height: calc(100dvh - 160px);
     justify-content: center;
 }
-
-.nostr-sync-bar {
-    width: 100%; max-width: 960px;
-    background: #0d0a1a; border: 1px solid #7B2FFF33;
-    border-radius: 12px; padding: 10px 18px;
-    display: flex; align-items: center; justify-content: space-between;
-    gap: 12px; flex-wrap: wrap;
-    animation: fadeIn .3s ease;
-}
-.nostr-sync-bar.hidden { display: none; }
 
 @media (max-width: 560px) {
     body { padding: 16px 10px 80px; gap: 16px; }
@@ -2972,10 +2793,8 @@ textarea.profile-input { resize: none; min-height: 68px; line-height: 1.5; font-
     .period-tab { font-size: .62rem; padding: 3px 6px; }
     .portfolio-summary { grid-template-columns: 1fr 1fr; gap: 8px; }
     .summary-split { gap: 8px; }
-    .nostr-card { padding: 28px 20px 24px; }
     .header-actions { gap: 5px; }
     .btn-icon { padding: 6px 8px; font-size: .68rem; }
-    .nostr-badge { padding: 6px 10px; font-size: .76rem; }
     .conv-input { font-size: 1.1rem; }
     .conv-currency { min-width: 60px; font-size: .78rem; }
     .table-controls { padding: 8px 14px 0; }
@@ -3064,15 +2883,6 @@ textarea.profile-input { resize: none; min-height: 68px; line-height: 1.5; font-
 }
 .guest-warning-text strong { color: #ffa944; }
 .guest-warning-actions { display: flex; gap: 8px; flex-shrink: 0; }
-.btn-guest-nostr {
-    background: linear-gradient(135deg, #7B2FFF, #a855f7);
-    border: none; border-radius: 8px; color: #fff;
-    font-family: var(--font-display); font-size: .78rem;
-    font-weight: 800; padding: 7px 14px;
-    cursor: pointer; transition: opacity .2s;
-    white-space: nowrap;
-}
-.btn-guest-nostr:hover { opacity: .85; }
 
 .confirm-overlay {
     position: fixed; inset: 0; background: rgba(0,0,0,.82);
@@ -3342,81 +3152,139 @@ html.theme-light .dca-result-card { background: #fff; }
 
 
 <div class="modal-overlay hidden" id="backup-modal-overlay">
-    <div class="modal" style="max-width:480px;gap:14px;">
+    <div class="modal" style="max-width:520px;gap:14px;">
         <div class="modal-title"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;margin-right:5px;flex-shrink:0"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>Backup de Dados</div>
-        <p class="modal-sub">Exporte um arquivo <strong>.btcbak</strong> criptografado com sua senha ou importe um backup anterior.</p>
-
+        <p class="modal-sub">No Android, use o <strong>código criptografado</strong> para backup. No navegador, use <strong>arquivos JSON criptografados</strong>. Tudo é processado no seu dispositivo — nenhum dado sai do aparelho.</p>
 
         <div style="display:flex;gap:0;background:var(--surface2);border:1px solid var(--border2);border-radius:10px;overflow:hidden;">
             <button id="bktab-export" onclick="backupShowTab('export')"
                 style="flex:1;padding:9px;border:none;cursor:pointer;font-family:var(--font-display);font-size:.82rem;font-weight:700;transition:all .2s;background:var(--btc-dim);color:var(--btc);">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;margin-right:5px;flex-shrink:0"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>Exportar
+                Exportar
             </button>
             <button id="bktab-import" onclick="backupShowTab('import')"
                 style="flex:1;padding:9px;border:none;cursor:pointer;font-family:var(--font-display);font-size:.82rem;font-weight:700;transition:all .2s;background:transparent;color:#666;">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;margin-right:5px;flex-shrink:0"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Importar
+                Importar
             </button>
         </div>
 
-
         <div id="bk-export-section">
-            <p style="font-family:var(--font-display);font-size:.82rem;color:#888;line-height:1.5;">
-                O backup é cifrado com <strong style="color:#bbb">AES-256-GCM + PBKDF2</strong> usando a senha abaixo.
-                Guarde a senha com segurança — sem ela o arquivo não pode ser restaurado.
+            <p style="font-family:var(--font-display);font-size:.82rem;color:#888;line-height:1.5;margin-bottom:8px;">
+                Escolha o formato do backup de acordo com onde você está usando o app <strong style="color:#bbb">(veja a recomendação em cada opção abaixo).</strong>
             </p>
-            <label class="nostr-label">Senha do backup</label>
+            <div style="display:flex;gap:8px;margin-bottom:12px;">
+                <button id="bk-format-code" type="button" onclick="backupSetExportFormat('code')" style="flex:1;text-align:left;padding:11px 12px;border:1px solid var(--btc);border-radius:10px;background:var(--btc-dim);color:var(--text);cursor:pointer;font-family:var(--font-display);">
+                    <strong style="display:block;color:var(--btc);font-size:.84rem;">🔐 Código criptografado</strong>
+                    <span style="display:block;color:#888;font-size:.7rem;line-height:1.35;margin-top:3px;">AES-256-GCM + PBKDF2 · recomendado no Android</span>
+                </button>
+                <button id="bk-format-json" type="button" onclick="backupSetExportFormat('json')" style="flex:1;text-align:left;padding:11px 12px;border:1px solid var(--border2);border-radius:10px;background:transparent;color:var(--text);cursor:pointer;font-family:var(--font-display);">
+                    <strong style="display:block;color:#bbb;font-size:.84rem;">🔐 Arquivo JSON</strong>
+                    <span style="display:block;color:#888;font-size:.7rem;line-height:1.35;margin-top:3px;">Criptografado · arquivo .json recomendado no navegador</span>
+                </button>
+            </div>
+            <div id="bk-code-export-fields">
+                <p style="font-family:var(--font-display);font-size:.82rem;color:#888;line-height:1.5;">
+                    Seus dados são compactados quando possível e protegidos com <strong style="color:#bbb">AES-256-GCM + PBKDF2</strong>. Guarde o backup (código ou arquivo) e a senha em locais seguros — <strong style="color:#bbb">sem a senha, os dados não podem ser recuperados.</strong>
+                </p>
+            <label class="field-label">Senha do backup</label>
             <div style="position:relative">
-                <input id="bk-export-pass1" type="password" class="nostr-input" placeholder="Crie uma senha forte…" autocomplete="new-password"
+                <input id="bk-export-pass1" type="password" class="field-input" placeholder="Crie uma senha forte…" autocomplete="new-password"
                     style="padding-right:44px" oninput="backupStrengthUpdate()">
                 <button type="button" onclick="backupToggleVis('bk-export-pass1')"
-                    style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:#555;cursor:pointer;font-size:1.1rem;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;margin-right:5px;flex-shrink:0"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+                    style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:#555;cursor:pointer;font-size:1.1rem;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-11 8-11 8z"/><circle cx="12" cy="12" r="3"/></svg></button>
             </div>
             <div style="position:relative;margin-top:8px">
-                <input id="bk-export-pass2" type="password" class="nostr-input" placeholder="Confirme a senha…" autocomplete="new-password"
+                <input id="bk-export-pass2" type="password" class="field-input" placeholder="Confirme a senha…" autocomplete="new-password"
                     style="padding-right:44px">
                 <button type="button" onclick="backupToggleVis('bk-export-pass2')"
-                    style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:#555;cursor:pointer;font-size:1.1rem;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;margin-right:5px;flex-shrink:0"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+                    style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:#555;cursor:pointer;font-size:1.1rem;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-11 8-11 8z"/><circle cx="12" cy="12" r="3"/></svg></button>
             </div>
             <div class="lpass-strength" id="bk-strength-row" style="display:none;margin-top:6px">
                 <div class="lpass-strength-bar"><div class="lpass-strength-fill" id="bk-strength-fill"></div></div>
                 <span id="bk-strength-label"></span>
             </div>
             <div id="bk-export-error" style="color:var(--red);font-size:.8rem;min-height:16px;margin-top:4px;"></div>
-            <div class="modal-actions" style="margin-top:4px">
-                <button class="btn-secondary" onclick="closeBackupModal()">Cancelar</button>
-                <button class="btn-primary" onclick="backupExport()"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;margin-right:5px;flex-shrink:0"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>Exportar Backup</button>
+
+            </div>
+            <div id="bk-code-result" style="display:none;margin-top:8px;">
+                <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px;">
+                    <label class="field-label" style="margin:0;">Código de backup</label>
+                    <span id="bk-code-size" style="font-size:.72rem;color:#888;"></span>
+                </div>
+                <textarea id="bk-export-code" class="modal-textarea" readonly spellcheck="false"
+                    style="width:100%;min-height:150px;resize:vertical;font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:.72rem;line-height:1.45;word-break:break-all;"></textarea>
+                <div style="display:flex;gap:8px;margin-top:8px;">
+                    <button class="btn-secondary" style="flex:1" onclick="backupCopyCode()">Copiar código</button>
+                    <button class="btn-secondary" style="flex:1" onclick="backupSelectCode()">Selecionar tudo</button>
+                </div>
+                <div style="font-size:.72rem;color:#777;line-height:1.45;margin-top:8px;">
+                    Este código contém apenas dados criptografados. <strong style="color:#999">A senha continua sendo necessária para restaurar.</strong>
+                </div>
+            </div>
+
+            <div id="bk-json-result" style="display:none;margin-top:8px;">
+                <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px;">
+                    <label class="field-label" style="margin:0;">Conteúdo do arquivo JSON</label>
+                    <span id="bk-json-size" style="font-size:.72rem;color:#888;"></span>
+                </div>
+                <textarea id="bk-export-json" class="modal-textarea" readonly spellcheck="false" style="width:100%;min-height:150px;resize:vertical;font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:.7rem;line-height:1.4;word-break:break-all;"></textarea>
+                <div style="display:flex;gap:8px;margin-top:8px;">
+                    <button class="btn-secondary" style="flex:1" onclick="backupCopyJson()">Copiar JSON</button>
+                    <button class="btn-secondary" style="flex:1" onclick="backupDownloadJson()">Baixar .json</button>
+                </div>
+                <div style="font-size:.72rem;color:#777;line-height:1.45;margin-top:8px;">Este arquivo está protegido com <strong style="color:#999">AES-256-GCM + PBKDF2</strong>. Sem a senha, os dados não podem ser lidos.</div>
+            </div>
+
+            <div class="modal-actions" style="margin-top:8px">
+                <button class="btn-secondary" onclick="closeBackupModal()">Fechar</button>
+                <button id="bk-export-btn" class="btn-primary" onclick="backupExport()">Gerar Backup</button>
             </div>
         </div>
 
-
         <div id="bk-import-section" style="display:none">
-            <p style="font-family:var(--font-display);font-size:.82rem;color:#888;line-height:1.5;">
-                Selecione um arquivo <strong style="color:#bbb">.btcbak</strong> e informe a senha usada na exportação.
-            </p>
-            <div id="bk-drop-zone"
-                style="border:2px dashed var(--border2);border-radius:12px;padding:24px;text-align:center;cursor:pointer;transition:border-color .2s;color:#555;font-family:var(--font-display);font-size:.85rem;"
-                onclick="document.getElementById('bk-file-input').click()"
-                ondragover="event.preventDefault();this.style.borderColor='var(--btc)'"
-                ondragleave="this.style.borderColor='var(--border2)'"
-                ondrop="backupHandleDrop(event)">
-                <div style="font-size:2rem;margin-bottom:8px;opacity:.5"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;margin-right:5px;flex-shrink:0"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg></div>
-                <div id="bk-drop-label">Clique ou arraste o arquivo .btcbak aqui</div>
+            <div style="display:flex;gap:0;background:var(--surface2);border:1px solid var(--border2);border-radius:9px;overflow:hidden;margin-bottom:10px;">
+                <button id="bk-import-code-tab" onclick="backupImportShowMode('code')"
+                    style="flex:1;padding:8px;border:none;cursor:pointer;font-family:var(--font-display);font-size:.78rem;font-weight:700;background:var(--btc-dim);color:var(--btc);">Código</button>
+                <button id="bk-import-file-tab" onclick="backupImportShowMode('file')"
+                    style="flex:1;padding:8px;border:none;cursor:pointer;font-family:var(--font-display);font-size:.78rem;font-weight:700;background:transparent;color:#666;">Arquivo</button>
             </div>
-            <input type="file" id="bk-file-input" accept=".btcbak,.json" style="display:none" onchange="backupFileSelected(this)">
-            <label class="nostr-label" style="margin-top:12px;">Senha do backup</label>
+
+            <div id="bk-import-code-section">
+                <p style="font-family:var(--font-display);font-size:.82rem;color:#888;line-height:1.5;">
+                    Cole o código de backup gerado pelo BTC Stack.
+                </p>
+                <textarea id="bk-import-code" class="modal-textarea" spellcheck="false"
+                    placeholder="Cole aqui o código BTCSTACK-BACKUP-V2…" style="width:100%;min-height:150px;resize:vertical;font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:.72rem;line-height:1.45;word-break:break-all;"></textarea>
+            </div>
+
+            <div id="bk-import-file-section" style="display:none">
+                <p style="font-family:var(--font-display);font-size:.82rem;color:#888;line-height:1.5;">
+                    Você pode restaurar um arquivo <strong style="color:#bbb">.btcbak</strong> ou <strong style="color:#bbb">.json</strong> — criptografado (vai pedir senha) ou aberto (backups antigos).
+                </p>
+                <div id="bk-drop-zone"
+                    style="border:2px dashed var(--border2);border-radius:12px;padding:24px;text-align:center;cursor:pointer;transition:border-color .2s;color:#555;font-family:var(--font-display);font-size:.85rem;"
+                    onclick="document.getElementById('bk-file-input').click()"
+                    ondragover="event.preventDefault();this.style.borderColor='var(--btc)'"
+                    ondragleave="this.style.borderColor='var(--border2)'"
+                    ondrop="backupHandleDrop(event)">
+                    <div style="font-size:2rem;margin-bottom:8px;opacity:.5"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg></div>
+                    <div id="bk-drop-label">Clique ou arraste o arquivo .btcbak ou .json aqui</div>
+                </div>
+                <input type="file" id="bk-file-input" accept=".btcbak,.json,.txt" style="display:none" onchange="backupFileSelected(this)">
+            </div>
+
+            <label class="field-label" style="margin-top:12px;">Senha do backup</label>
             <div style="position:relative">
-                <input id="bk-import-pass" type="password" class="nostr-input" placeholder="Senha usada na exportação…" autocomplete="current-password"
+                <input id="bk-import-pass" type="password" class="field-input" placeholder="Senha usada na exportação…" autocomplete="current-password"
                     style="padding-right:44px">
                 <button type="button" onclick="backupToggleVis('bk-import-pass')"
-                    style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:#555;cursor:pointer;font-size:1.1rem;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;margin-right:5px;flex-shrink:0"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+                    style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:#555;cursor:pointer;font-size:1.1rem;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-11 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
             </div>
             <div id="bk-import-error" style="color:var(--red);font-size:.8rem;min-height:16px;margin-top:4px;"></div>
             <div class="modal-actions" style="margin-top:4px">
                 <button class="btn-secondary" onclick="closeBackupModal()">Cancelar</button>
-                <button class="btn-primary" onclick="backupImport()"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;margin-right:5px;flex-shrink:0"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Importar Backup</button>
+                <button class="btn-primary" onclick="backupImport()">Importar Backup</button>
             </div>
         </div>
-
     </div>
 </div>
 
@@ -3507,7 +3375,7 @@ html.theme-light .dca-result-card { background: #fff; }
             <div class="onboarding-slide" data-step="4">
                 <div class="onboarding-icon"><svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
                 <div class="onboarding-title">Seus dados ficam no aparelho</div>
-                <p class="onboarding-text">Tudo é salvo localmente neste dispositivo — nenhum servidor seu guarda essas informações. Faça backups periódicos criptografados (.btcbak) em <strong>Mais → Backup</strong>, principalmente antes de trocar de celular.</p>
+                <p class="onboarding-text">Tudo é salvo localmente neste dispositivo — nenhum servidor seu guarda essas informações. Faça backups periódicos em <strong>Mais → Backup</strong>. No Android, prefira o código criptografado; também há opção de JSON.</p>
             </div>
         </div>
 
@@ -3596,9 +3464,6 @@ html.theme-light .dca-result-card { background: #fff; }
     </div>
 </div>
 
-<span id="nostr-sync-text" style="display:none"></span>
-<span id="nostr-enc-badge" style="display:none"></span>
-<div id="nostr-sync-bar" style="display:none"></div>
 <div id="guest-warning-banner" style="display:none"></div>
 
 <div class="confirm-overlay hidden" id="confirm-overlay">
@@ -5001,9 +4866,6 @@ async function fetchPeriodChange(curCode, period) {
     let pct = null;
 
 
-
-
-
     try {
         const days = PERIOD_DAYS[period];
         const vs   = curCode.toLowerCase();
@@ -5019,8 +4881,6 @@ async function fetchPeriodChange(curCode, period) {
             }
         }
     } catch (e) {  }
-
-
 
 
     if (pct === null) {
@@ -5341,8 +5201,6 @@ function showConfirm(title, bodyFragment, buttons) {
         const actionsEl = document.getElementById('confirm-actions');
 
         titleEl.textContent = title;
-
-
 
 
         bodyEl.textContent = '';
@@ -5784,7 +5642,6 @@ function parseFiatInput(str) {
     if (str.includes(',') && !str.includes('.')) {
         return parseFloat(str.replace(',', '.'));
     }
-
 
 
     if (str.includes('.') && !str.includes(',')) {
@@ -7082,7 +6939,6 @@ function drawIndicatorChart(canvasId, values, opts) {
 async function fetchBinanceDailyKlines() {
 
 
-
     let closes = [];
     let startTime = 1502928000000;
     const now = Date.now();
@@ -7104,7 +6960,6 @@ async function fetchBinanceDailyKlines() {
 }
 
 async function fetchCoinGeckoDailyCloses() {
-
 
 
     const url = 'https://api.coingecko.com/api/v3/coins/bitcoin/market_chart?vs_currency=usd&days=365&precision=2';
@@ -7866,7 +7721,6 @@ function renderCycleIndicators(closes) {
     }
 
 
-
     const weekly = [];
     for (let i = lastIdx; i >= 0; i -= 7) weekly.push(closes[i]);
     weekly.reverse();
@@ -7889,7 +7743,6 @@ function renderCycleIndicators(closes) {
     } else {
         document.getElementById('cc-wma200-foot').textContent = 'Histórico insuficiente para 200 semanas ainda.';
     }
-
 
 
     const monthly = [];
@@ -7932,7 +7785,6 @@ function renderCycleIndicators(closes) {
     } else {
         document.getElementById('cc-rsi-foot').textContent = 'Histórico insuficiente para RSI mensal.';
     }
-
 
 
     let athRunning = closes[0];
@@ -8339,7 +8191,14 @@ function renderPortfolio() {
 }
 
 function escapeCSVField(val) {
-    const s = String(val ?? '');
+    let s = String(val ?? '');
+
+    // Neutraliza CSV/Formula Injection: se a célula começar com caractere que o
+    // Excel/Sheets interpreta como início de fórmula (=, +, -, @, tab, CR), prefixa
+    // com apóstrofo para forçar leitura como texto puro.
+    if (/^[=+\-@\t\r]/.test(s)) {
+        s = "'" + s;
+    }
 
     if (s.includes('"') || s.includes(',') || s.includes('\n')) {
         return '"' + s.replace(/"/g, '""') + '"';
@@ -9287,7 +9146,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 // ══════════════════════════════════════════════════════════════
-// saveAportes — wrapper simples (sem push Nostr)
+// saveAportes — wrapper simples
 // ══════════════════════════════════════════════════════════════
 function saveAportes() {
     saveAportesAsync(aportes).catch(e => {
@@ -10039,514 +9898,331 @@ function goalRender() {
 // valor bruto, ignorando tudo que já foi vendido/gasto.)
 // ══════════════════════════════════════════════════════════════
 
-let _backupFileData = null; // conteúdo do arquivo de backup carregado
+let _backupFileData = null;
+let _backupFileIsPlainJson = false;
+let _backupFileIsCode = false;
+let _backupImportMode = 'code';
+let _backupExportFormat = 'code';
 
-function openBackupModal() {
-    _backupFileData = null;
-    document.getElementById('bk-export-pass1').value = '';
-    document.getElementById('bk-export-pass2').value = '';
-    document.getElementById('bk-import-pass').value  = '';
-    document.getElementById('bk-export-error').textContent = '';
-    document.getElementById('bk-import-error').textContent = '';
-    document.getElementById('bk-drop-label').textContent   = 'Clique ou arraste o arquivo .btcbak aqui';
-    document.getElementById('bk-strength-row').style.display = 'none';
-    backupShowTab('export');
-    document.getElementById('backup-modal-overlay').classList.remove('hidden');
+// ── Backup independente do Median ───────────────────────────────
+// V2: JSON mínimo → compressão (quando disponível) → AES-256-GCM
+// → código textual. No Android, nenhum download nativo é necessário.
+// O arquivo .btcbak continua sendo usado somente no modo Web/Desktop.
+
+function backupBytesToB64Url(bytes) {
+    let binary = '';
+    const chunk = 0x8000;
+    for (let i = 0; i < bytes.length; i += chunk) binary += String.fromCharCode(...bytes.subarray(i, Math.min(i + chunk, bytes.length)));
+    return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
 }
-
-function closeBackupModal() {
-    document.getElementById('backup-modal-overlay').classList.add('hidden');
-    _backupFileData = null;
+function backupB64UrlToBytes(str) {
+    const b64 = String(str).replace(/-/g, '+').replace(/_/g, '/');
+    const padded = b64 + '='.repeat((4 - (b64.length % 4)) % 4);
+    const binary = atob(padded); const out = new Uint8Array(binary.length);
+    for (let i=0;i<binary.length;i++) out[i]=binary.charCodeAt(i);
+    return out;
 }
-
-document.getElementById('backup-modal-overlay').addEventListener('click', function(e) {
-    if (e.target === this) closeBackupModal();
-});
-
-function backupShowTab(tab) {
-    const isExport = tab === 'export';
-    document.getElementById('bk-export-section').style.display = isExport ? '' : 'none';
-    document.getElementById('bk-import-section').style.display = isExport ? 'none' : '';
-
-    const btnE = document.getElementById('bktab-export');
-    const btnI = document.getElementById('bktab-import');
-
-    [btnE, btnI].forEach(b => {
-        if (b) { b.style.background = 'transparent'; b.style.color = '#666'; }
+async function backupCompressBytes(bytes) {
+    if (typeof CompressionStream === 'undefined') return {bytes,compressed:false};
+    try {
+        const cs=new CompressionStream('gzip'), writer=cs.writable.getWriter();
+        await writer.write(bytes); await writer.close();
+        const result=new Uint8Array(await new Response(cs.readable).arrayBuffer());
+        return result.length < bytes.length ? {bytes:result,compressed:true} : {bytes,compressed:false};
+    } catch(e) { addAppLog(`Compressão gzip indisponível: ${e.message}`,'warn'); return {bytes,compressed:false}; }
+}
+async function backupDecompressBytes(bytes, compressed) {
+    if (!compressed) return bytes;
+    if (typeof DecompressionStream === 'undefined') throw new Error('Este navegador não suporta descompressão do backup.');
+    const ds=new DecompressionStream('gzip'), writer=ds.writable.getWriter();
+    await writer.write(bytes); await writer.close();
+    return new Uint8Array(await new Response(ds.readable).arrayBuffer());
+}
+function backupToggleVis(inputId){
+    const el=document.getElementById(inputId);
+    if(!el) return;
+    el.type = el.type==='password' ? 'text' : 'password';
+}
+function backupWithTimeout(promise, ms, label) {
+    return new Promise((resolve, reject) => {
+        const t = setTimeout(() => reject(new Error(`Tempo esgotado na etapa: ${label}. O WebView do aparelho travou nessa operação — tente atualizar o "Android System WebView" na Play Store, ou use a exportação em Arquivo JSON.`)), ms);
+        promise.then(v => { clearTimeout(t); resolve(v); }, e => { clearTimeout(t); reject(e); });
     });
-
-    const activeBtn = isExport ? btnE : btnI;
-    if (activeBtn) {
-        activeBtn.style.background = 'var(--btc-dim)';
-        activeBtn.style.color = 'var(--btc)';
+}
+async function backupEncryptBytes(key, plainBytes) {
+    const iv=crypto.getRandomValues(new Uint8Array(12));
+    const ct=await crypto.subtle.encrypt({name:'AES-GCM',iv},key,plainBytes);
+    const out=new Uint8Array(12+ct.byteLength); out.set(iv); out.set(new Uint8Array(ct),12); return out;
+}
+async function backupDecryptBytes(key, encryptedBytes) {
+    if (encryptedBytes.length < 29) throw new Error('Backup inválido.');
+    const iv=encryptedBytes.slice(0,12), ct=encryptedBytes.slice(12);
+    return new Uint8Array(await crypto.subtle.decrypt({name:'AES-GCM',iv},key,ct));
+}
+function backupBuildCode(saltBytes, encryptedBytes, compressed) {
+    return `BTCSTACK-BACKUP-V2.${compressed?'c':'n'}.${backupBytesToB64Url(saltBytes)}.${backupBytesToB64Url(encryptedBytes)}`;
+}
+// ── Empacotamento compacto do payload (v3) ──────────────────────
+// Em vez de {"id":"...","data":"...","sats":...,...} repetido por item (nomes de
+// campo pesam muito no tamanho final quando a compressão gzip não está disponível
+// no WebView), usamos arrays posicionais + datas/moedas como números. Isso reduz
+// o tamanho do código em ~50% mesmo sem compressão, e continua funcionando igual
+// quando a compressão também funciona (ela ainda é tentada por cima disso).
+const BACKUP_CUR = ['USD', 'BRL', 'EUR'];
+function backupDateToEpochDay(dateStr) {
+    const [y, m, d] = String(dateStr).split('-').map(Number);
+    return Math.round(Date.UTC(y, m - 1, d) / 86400000);
+}
+function backupEpochDayToDate(days) {
+    const dt = new Date(days * 86400000);
+    const y = dt.getUTCFullYear(), m = String(dt.getUTCMonth() + 1).padStart(2, '0'), d = String(dt.getUTCDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+}
+function backupCompactPack(aportesArr, vendasArr) {
+    const curIdx = c => { const i = BACKUP_CUR.indexOf(c); return i === -1 ? BACKUP_CUR.length : i; };
+    const curOf = i => BACKUP_CUR[i] || 'USD';
+    const A = aportesArr.map(a => [a.id, backupDateToEpochDay(a.data), a.sats, a.valor, a.preco, curIdx(a.currency), a.nota || '']);
+    const V = vendasArr.map(v => [v.id, backupDateToEpochDay(v.data), v.tipo === 'spend' ? 1 : 0, v.sats, v.valor, v.preco, v.custoMedio, v.pnl, curIdx(v.currency), v.nota || '']);
+    return { v: 3, exportedAt: Date.now(), A, V };
+}
+function backupCompactUnpack(payload) {
+    const curOf = i => BACKUP_CUR[i] || 'USD';
+    const aportes = (payload.A || []).map(r => ({ id: r[0], data: backupEpochDayToDate(r[1]), sats: r[2], valor: r[3], preco: r[4], currency: curOf(r[5]), nota: r[6] || '' }));
+    const vendas = (payload.V || []).map(r => ({ id: r[0], data: backupEpochDayToDate(r[1]), tipo: r[2] === 1 ? 'spend' : 'sell', sats: r[3], valor: r[4], preco: r[5], custoMedio: r[6], pnl: r[7], currency: curOf(r[8]), nota: r[9] || '' }));
+    return { v: 2, exportedAt: payload.exportedAt, aportes, vendas };
+}
+// ── Empacotamento binário (v4) ───────────────────────────────────
+// Vai além do array-JSON acima: grava os dados como bytes fixos (sem aspas,
+// vírgulas, colchetes) — UUID como 16 bytes em vez de 36 caracteres, datas como
+// inteiro de 2 bytes, valores como float64 de 8 bytes. Reduz o payload em ~35-45%
+// a mais que o formato v3, ficando ainda menor mesmo se a compressão gzip falhar.
+// Primeiro byte 0xF4 identifica o formato binário (nunca colide com '{' de JSON).
+const BACKUP_BIN_MAGIC = 0xF4;
+const BACKUP_UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+class BackupByteWriter {
+    constructor(){ this.chunks=[]; }
+    u8(v){ this.chunks.push(new Uint8Array([v&0xFF])); return this; }
+    u16(v){ const b=new Uint8Array(2); new DataView(b.buffer).setUint16(0,v,false); this.chunks.push(b); return this; }
+    u32(v){ const b=new Uint8Array(4); new DataView(b.buffer).setUint32(0,v,false); this.chunks.push(b); return this; }
+    u64(v){ const b=new Uint8Array(8); new DataView(b.buffer).setBigUint64(0,BigInt(Math.round(v)),false); this.chunks.push(b); return this; }
+    // Varint (LEB128) sem sinal — usado para sats (sempre inteiro exato, sem risco de
+    // arredondamento). Números pequenos (a maioria dos casos reais) ocupam 1-4 bytes
+    // em vez de 8 fixos.
+    uvarint(v){
+        let n=BigInt(Math.round(v));
+        const bytes=[];
+        do{ let b=Number(n & 0x7Fn); n >>= 7n; if(n>0n) b|=0x80; bytes.push(b); } while(n>0n);
+        this.chunks.push(new Uint8Array(bytes));
+        return this;
+    }
+    f64(v){ const b=new Uint8Array(8); new DataView(b.buffer).setFloat64(0,v,false); this.chunks.push(b); return this; }
+    bytes(u8arr){ this.chunks.push(u8arr); return this; }
+    str(s){ const enc=new TextEncoder().encode(String(s||'')); this.u16(enc.length); this.bytes(enc); return this; }
+    id(idStr){
+        const s=String(idStr||'');
+        if(BACKUP_UUID_RE.test(s)){
+            this.u8(1);
+            const hex=s.replace(/-/g,'');
+            const b=new Uint8Array(16);
+            for(let i=0;i<16;i++) b[i]=parseInt(hex.substr(i*2,2),16);
+            this.bytes(b);
+        } else { this.u8(0); this.str(s); }
+        return this;
+    }
+    finish(){ let total=0; for(const c of this.chunks) total+=c.length; const out=new Uint8Array(total); let off=0; for(const c of this.chunks){ out.set(c,off); off+=c.length; } return out; }
+}
+class BackupByteReader {
+    constructor(bytes){ this.b=bytes; this.dv=new DataView(bytes.buffer,bytes.byteOffset,bytes.byteLength); this.p=0; }
+    u8(){ const v=this.dv.getUint8(this.p); this.p+=1; return v; }
+    u16(){ const v=this.dv.getUint16(this.p,false); this.p+=2; return v; }
+    u32(){ const v=this.dv.getUint32(this.p,false); this.p+=4; return v; }
+    u64(){ const v=this.dv.getBigUint64(this.p,false); this.p+=8; return Number(v); }
+    uvarint(){
+        let result=0n, shift=0n;
+        while(true){
+            const b=this.dv.getUint8(this.p); this.p+=1;
+            result |= BigInt(b & 0x7F) << shift;
+            if((b & 0x80)===0) break;
+            shift += 7n;
+        }
+        return Number(result);
+    }
+    f64(){ const v=this.dv.getFloat64(this.p,false); this.p+=8; return v; }
+    bytes(n){ const v=this.b.subarray(this.p,this.p+n); this.p+=n; return v; }
+    str(){ const n=this.u16(); return new TextDecoder().decode(this.bytes(n)); }
+    id(){
+        const marker=this.u8();
+        if(marker===1){
+            const b=this.bytes(16);
+            let hex=''; for(let i=0;i<16;i++) hex+=b[i].toString(16).padStart(2,'0');
+            return `${hex.slice(0,8)}-${hex.slice(8,12)}-${hex.slice(12,16)}-${hex.slice(16,20)}-${hex.slice(20,32)}`;
+        }
+        return this.str();
     }
 }
-
-function backupToggleVis(id) {
-    const inp = document.getElementById(id);
-    inp.type = inp.type === 'password' ? 'text' : 'password';
+function backupBinaryPack(aportesArr, vendasArr) {
+    const curIdx = c => { const i = BACKUP_CUR.indexOf(c); return i === -1 ? BACKUP_CUR.length : i; };
+    const w = new BackupByteWriter();
+    w.u8(BACKUP_BIN_MAGIC).u16(aportesArr.length).u16(vendasArr.length);
+    for (const a of aportesArr) w.id(a.id).u16(backupDateToEpochDay(a.data)).uvarint(a.sats).f64(a.valor).f64(a.preco).u8(curIdx(a.currency)).str(a.nota||'');
+    for (const v of vendasArr) w.id(v.id).u16(backupDateToEpochDay(v.data)).u8(v.tipo==='spend'?1:0).uvarint(v.sats).f64(v.valor).f64(v.preco).f64(v.custoMedio).f64(v.pnl).u8(curIdx(v.currency)).str(v.nota||'');
+    return w.finish();
+}
+function backupBinaryUnpack(bytes) {
+    const r=new BackupByteReader(bytes);
+    if(r.u8()!==BACKUP_BIN_MAGIC) throw new Error('Formato binário de backup desconhecido.');
+    const nA=r.u16(), nV=r.u16();
+    const aportes=[]; for(let i=0;i<nA;i++){ const id=r.id(),day=r.u16(),sats=r.uvarint(),valor=r.f64(),preco=r.f64(),cur=r.u8(),nota=r.str(); aportes.push({id,data:backupEpochDayToDate(day),sats,valor,preco,currency:BACKUP_CUR[cur]||'USD',nota}); }
+    const vendas=[]; for(let i=0;i<nV;i++){ const id=r.id(),day=r.u16(),tipoB=r.u8(),sats=r.uvarint(),valor=r.f64(),preco=r.f64(),custoMedio=r.f64(),pnl=r.f64(),cur=r.u8(),nota=r.str(); vendas.push({id,data:backupEpochDayToDate(day),tipo:tipoB===1?'spend':'sell',sats,valor,preco,custoMedio,pnl,currency:BACKUP_CUR[cur]||'USD',nota}); }
+    return { v:2, exportedAt: Date.now(), aportes, vendas };
+}
+async function backupParseCode(code,password) {
+    const normalized=String(code||'').trim().replace(/\s+/g,'');
+    const parts=normalized.split('.');
+    if(parts.length!==4 || parts[0]!=='BTCSTACK-BACKUP-V2') throw new Error('Código de backup incompatível ou incompleto.');
+    if(parts[1]!=='c' && parts[1]!=='n') throw new Error('Código de backup inválido.');
+    const saltBytes=backupB64UrlToBytes(parts[2]), encryptedBytes=backupB64UrlToBytes(parts[3]);
+    if(saltBytes.length!==16 || encryptedBytes.length<29) throw new Error('Código de backup corrompido.');
+    const saltB64=btoa(String.fromCharCode(...saltBytes));
+    const key=await backupWithTimeout(deriveAesKeyFromPassword(password,saltB64),15000,'derivação de chave (PBKDF2)');
+    const plainBytes=await backupWithTimeout(backupDecryptBytes(key,encryptedBytes),15000,'descriptografia (AES-GCM)');
+    const decompressed=await backupWithTimeout(backupDecompressBytes(plainBytes,parts[1]==='c'),15000,'descompressão');
+    let parsed;
+    if(decompressed[0]===BACKUP_BIN_MAGIC){
+        parsed=backupBinaryUnpack(decompressed);
+    } else {
+        parsed=JSON.parse(new TextDecoder().decode(decompressed));
+        if(parsed && parsed.v===3) parsed=backupCompactUnpack(parsed);
+    }
+    if(!parsed || parsed.v!==2 || !Array.isArray(parsed.aportes)) throw new Error('Dados de backup inválidos.');
+    return parsed;
 }
 
-// ===== SISTEMA DE LOG GERAL DO APP =====
-// Log central da aplicação inteira (não só do backup). Alimenta o recurso
-// "Exportar Log" do menu, usado para diagnosticar erros e bugs.
-// IMPORTANTE: este log é só para diagnóstico técnico (o que a plataforma
-// está fazendo, erros, falhas de rede/download etc). Nunca deve conter
-// dados pessoais do usuário na plataforma (valores, aportes, vendas, saldos,
-// senhas, endereços). As chamadas a addAppLog() já evitam registrar esse
-// tipo de dado (só passam contagens e mensagens técnicas genéricas), e a
-// função abaixo funciona como uma segunda camada de proteção: caso algum
-// texto de erro (inclusive de bibliotecas de terceiros) contenha algo que
-// pareça um valor monetário, endereço Bitcoin, chave ou e-mail, esse trecho
-// é ofuscado antes de entrar no log.
+// ===== LOG TÉCNICO DA APLICAÇÃO =====
 function sanitizeLogText(str) {
-    if (str === null || str === undefined) return '';
-    let s = String(str);
-    s = s.replace(/\bbc1[ac-hj-np-z02-9]{20,90}\b/gi, '[endereço oculto]');       // endereços bech32
-    s = s.replace(/\b[13][a-km-zA-HJ-NP-Z1-9]{25,34}\b/g, '[endereço oculto]');   // endereços legacy/P2SH
-    s = s.replace(/\bnsec1[ac-hj-np-z02-9]{20,90}\b/gi, '[chave privada oculta]'); // chave privada nostr, se houver
-    s = s.replace(/\b[0-9a-f]{64}\b/gi, '[chave/hash oculto]');                   // chave privada/hash hex
-    s = s.replace(/R\$\s?\d[\d.,]*\d/gi, '[valor oculto]');                       // valores em reais
-    s = s.replace(/\$\s?\d[\d.,]*\d/g, '[valor oculto]');                         // valores em dólar
-    s = s.replace(/\b\d+\.\d{8}\b/g, '[valor BTC oculto]');                       // BTC com 8 casas decimais
-    s = s.replace(/\b[\w.+-]+@[\w-]+\.[a-z]{2,}\b/gi, '[e-mail oculto]');         // e-mails
+    if(str==null) return '';
+    let s=String(str);
+    s=s.replace(/\bbc1[ac-hj-np-z02-9]{20,90}\b/gi,'[endereço oculto]');
+    s=s.replace(/\b[13][a-km-zA-HJ-NP-Z1-9]{25,34}\b/g,'[endereço oculto]');
+    s=s.replace(/\bnsec1[ac-hj-np-z02-9]{20,90}\b/gi,'[chave privada oculta]');
+    s=s.replace(/\b[0-9a-f]{64}\b/gi,'[chave/hash oculto]');
+    s=s.replace(/R\$\s?\d[\d.,]*\d/gi,'[valor oculto]');
+    s=s.replace(/\$\s?\d[\d.,]*\d/g,'[valor oculto]');
+    s=s.replace(/\b\d+\.\d{8}\b/g,'[valor BTC oculto]');
+    s=s.replace(/[\w.+-]+@[\w-]+\.[a-z]{2,}/gi,'[e-mail oculto]');
     return s;
 }
-
-const _APP_LOG_MAX = 500;
-let _appLogs = [];
-
-function addAppLog(msg, type = 'info') {
-    const safeMsg = sanitizeLogText(msg);
-    const timestamp = new Date().toLocaleTimeString();
-    _appLogs.push({ msg: safeMsg, type, timestamp });
-    if (_appLogs.length > _APP_LOG_MAX) _appLogs.shift();
-
-    // Também registra no console do navegador/WebView
-    console[type === 'error' ? 'error' : type === 'warn' ? 'warn' : 'log'](`[${type.toUpperCase()}] ${safeMsg}`);
+const _APP_LOG_MAX=500; let _appLogs=[];
+function addAppLog(msg,type='info') {
+    const safeType=['success','error','warn','info'].includes(type)?type:'info';
+    const safeMsg=sanitizeLogText(msg); _appLogs.push({msg:safeMsg,type:safeType,timestamp:new Date().toLocaleTimeString('pt-BR')});
+    if(_appLogs.length>_APP_LOG_MAX) _appLogs.shift();
+    try{console[safeType==='error'?'error':safeType==='warn'?'warn':'log'](`[${safeType.toUpperCase()}] ${safeMsg}`);}catch{}
 }
+function getAppLogLines(){return _appLogs.length?_appLogs.map(l=>`[${l.timestamp}] [${l.type.toUpperCase()}] ${l.msg}`):['Nenhum evento registrado nesta sessão.'];}
+function buildAppLogFileContent(){return ['BTC Stack — Log de Diagnóstico',`Gerado em: ${new Date().toLocaleString('pt-BR')}`,`User-Agent: ${sanitizeLogText(navigator.userAgent)}`,'Este arquivo contém apenas eventos técnicos desta sessão.','Não inclui valores de aportes/vendas, saldos, senhas ou endereços.','='.repeat(48),'',...getAppLogLines(),''].join('\n');}
+const APPLOG_ICON_PATHS={success:'<polyline points="20 6 9 17 4 12"/>',error:'<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>',warn:'<path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>',info:'<circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>'};
+function renderAppLogList(){const el=document.getElementById('applog-list');if(!el)return;el.innerHTML='';const ts=document.getElementById('applog-updated');if(ts)ts.textContent=`Atualizado às ${new Date().toLocaleTimeString('pt-BR')}`;if(!_appLogs.length){const e=document.createElement('div');e.className='applog-empty';e.textContent='Nenhum log ainda…';el.appendChild(e);return;} _appLogs.forEach(l=>{const t=APPLOG_ICON_PATHS[l.type]?l.type:'info',r=document.createElement('div');r.className=`applog-entry type-${t}`;r.innerHTML=`<span class="applog-entry-icon"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">${APPLOG_ICON_PATHS[t]}</svg></span><span>[${l.timestamp}] ${l.msg}</span>`;el.appendChild(r);});el.scrollTop=el.scrollHeight;}
+function openAppLogViewer(){if(typeof closeDrawer==='function')closeDrawer();renderAppLogList();document.getElementById('applog-modal-overlay')?.classList.remove('hidden');}
+function closeAppLogViewer(){document.getElementById('applog-modal-overlay')?.classList.add('hidden');}
+function refreshAppLogView(){renderAppLogList();showToast('Log atualizado.','info');}
+function copyTextFallback(text,title){let o=document.getElementById('generic-copy-fallback-overlay');if(o)o.remove();o=document.createElement('div');o.id='generic-copy-fallback-overlay';o.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.78);z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px;';const b=document.createElement('div');b.style.cssText='background:var(--surface2);border:1px solid var(--border2);border-radius:14px;padding:16px;max-width:560px;width:100%;max-height:85vh;display:flex;flex-direction:column;gap:10px;';const h=document.createElement('div');h.style.cssText='font-family:var(--font-display);font-weight:700;color:var(--text,#eee);font-size:.95rem;';h.textContent=title||'Copiar conteúdo';const ta=document.createElement('textarea');ta.value=text;ta.readOnly=true;ta.style.cssText='width:100%;min-height:260px;background:#0c0c0c;color:#ccc;border:1px solid var(--border2);border-radius:8px;padding:10px;font-family:monospace;font-size:.72rem;resize:vertical;';const a=document.createElement('div');a.style.cssText='display:flex;gap:8px;';const c=document.createElement('button');c.className='btn-primary';c.textContent='Copiar';c.style.flex='1';const x=document.createElement('button');x.className='btn-secondary';x.textContent='Fechar';x.style.flex='1';c.onclick=async()=>{try{await navigator.clipboard.writeText(text);showToast('✓ Copiado!','success');}catch{ta.focus();ta.select();try{document.execCommand('copy')}catch{}showToast('Selecione e copie manualmente.','info');}};x.onclick=()=>o.remove();a.append(c,x);b.append(h,ta,a);o.appendChild(b);o.addEventListener('click',e=>{if(e.target===o)o.remove()});document.body.appendChild(o);setTimeout(()=>{ta.focus();ta.select();},50);}
+async function copyAppLog(){const text=getAppLogLines().join('\n');try{if(!navigator.clipboard?.writeText)throw 0;await navigator.clipboard.writeText(text);showToast('✓ Log copiado para a área de transferência!','success');}catch{copyTextFallback(text,'Copiar log manualmente');}}
+function clearAppLog(){_appLogs=[];renderAppLogList();showToast('Log limpo.','info');}
+async function exportAppLog(){const content=buildAppLogFileContent(),blob=new Blob([content],{type:'text/plain;charset=utf-8'}),fileName=`btc-stack-log-${todayLocalStr()}.txt`,android=/android/i.test(navigator.userAgent);if(android&&navigator.share){try{const f=new File([blob],fileName,{type:'text/plain'}),d={files:[f],title:'Log do BTC Stack'};if(!navigator.canShare||navigator.canShare(d)){await navigator.share(d);addAppLog('✓ Log compartilhado pela Web Share API.','success');return;}}catch(e){if(e.name==='AbortError')return;addAppLog(`Web Share do log falhou: ${e.message}`,'warn');}}if(!android&&window.showSaveFilePicker){try{const h=await window.showSaveFilePicker({suggestedName:fileName,types:[{description:'BTC Stack Log',accept:{'text/plain':['.txt']}}]}),w=await h.createWritable();await w.write(blob);await w.close();addAppLog('✓ Log salvo pelo navegador.','success');showToast('✓ Log exportado!','success');return;}catch(e){if(e.name==='AbortError')return;addAppLog(`Salvar log falhou: ${e.message}`,'warn');}}if(!android){try{const u=URL.createObjectURL(blob),a=document.createElement('a');a.href=u;a.download=fileName;a.style.display='none';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),1500);addAppLog('✓ Log exportado pelo navegador.','success');showToast('✓ Log exportado!','success');return;}catch(e){addAppLog(`Download do log falhou: ${e.message}`,'warn');}}addAppLog('Android/WebView sem compartilhamento nativo: mostrando log para cópia manual.','info');copyTextFallback(content,`Log do BTC Stack — ${fileName}`);}
+window.addEventListener('error',e=>{try{addAppLog(`Erro: ${e.message||'erro desconhecido'} (${e.filename||'?'}:${e.lineno||0}:${e.colno||0})`,'error')}catch{}});
+window.addEventListener('unhandledrejection',e=>{try{const r=e.reason&&e.reason.message?e.reason.message:String(e.reason);addAppLog(`Promise rejeitada: ${r}`,'error')}catch{}});
 
-function getAppLogLines() {
-    return _appLogs.length
-        ? _appLogs.map(l => `[${l.timestamp}] [${l.type.toUpperCase()}] ${l.msg}`)
-        : ['Nenhum evento registrado nesta sessão.'];
-}
+function backupSetExportFormat(format){_backupExportFormat=format==='json'?'json':'code';const code=_backupExportFormat==='code',cb=document.getElementById('bk-format-code'),jb=document.getElementById('bk-format-json');if(cb){cb.style.borderColor=code?'var(--btc)':'var(--border2)';cb.style.background=code?'var(--btc-dim)':'transparent';}if(jb){jb.style.borderColor=code?'var(--border2)':'var(--btc)';jb.style.background=code?'transparent':'var(--btc-dim)';}document.getElementById('bk-code-result').style.display='none';document.getElementById('bk-json-result').style.display='none';document.getElementById('bk-export-error').textContent='';document.getElementById('bk-export-btn').textContent='Gerar Backup';}
+function backupJsonObject(){return{v:1,app:'btc-stack',exportedAt:Date.now(),encrypted:false,aportes:Array.isArray(aportes)?aportes:[],vendas:Array.isArray(vendas)?vendas:[]};}
+function backupJsonText(){return JSON.stringify(backupJsonObject(),null,2);}
+function backupDownloadText(text,fileName,mime='application/json'){const blob=new Blob([text],{type:mime}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=fileName;a.style.display='none';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500);}
+async function backupCopyJson(){const text=document.getElementById('bk-export-json')?.value||'';if(!text)return;try{await navigator.clipboard.writeText(text);showToast('✓ JSON copiado!','success')}catch{copyTextFallback(text,'Copiar backup JSON');}}
+function backupDownloadJson(){const text=document.getElementById('bk-export-json')?.value||'';if(!text)return;try{backupDownloadText(text,`btc-stack-${todayLocalStr()}.json`);addAppLog('✓ Backup JSON criptografado exportado.','success');showToast('✓ Arquivo JSON preparado para download.','success')}catch(e){addAppLog(`Download do JSON falhou: ${e.message}`,'error');copyTextFallback(text,'Salvar backup JSON manualmente');}}
+function backupStrengthUpdate(){const pw=document.getElementById('bk-export-pass1').value,row=document.getElementById('bk-strength-row');if(!pw){row.style.display='none';return;}row.style.display='flex';const strength=lpassStrength(pw),colors=['#e74c3c','#e67e22','#f1c40f','#2ecc71','#00e87a'],labels=['Muito fraca','Fraca','Razoável','Boa','Forte'];document.getElementById('bk-strength-fill').style.width=(strength*25)+'%';document.getElementById('bk-strength-fill').style.background=colors[strength];document.getElementById('bk-strength-label').textContent=labels[strength];document.getElementById('bk-strength-label').style.color=colors[strength];}
+function backupShowTab(tab){const isExport=tab==='export';document.getElementById('bk-export-section').style.display=isExport?'':'none';document.getElementById('bk-import-section').style.display=isExport?'none':'';const e=document.getElementById('bktab-export'),i=document.getElementById('bktab-import');e.style.background=isExport?'var(--btc-dim)':'transparent';e.style.color=isExport?'var(--btc)':'#666';i.style.background=isExport?'transparent':'var(--btc-dim)';i.style.color=isExport?'#666':'var(--btc)';}
+function backupImportShowMode(mode){_backupImportMode=mode==='file'?'file':'code';if(_backupImportMode==='code'){_backupFileIsPlainJson=false;_backupFileIsCode=false;}const code=_backupImportMode==='code';document.getElementById('bk-import-code-section').style.display=code?'':'none';document.getElementById('bk-import-file-section').style.display=code?'none':'';const c=document.getElementById('bk-import-code-tab'),f=document.getElementById('bk-import-file-tab');c.style.background=code?'var(--btc-dim)':'transparent';c.style.color=code?'var(--btc)':'#666';f.style.background=code?'transparent':'var(--btc-dim)';f.style.color=code?'#666':'var(--btc)';const p=document.getElementById('bk-import-pass')?.parentElement;if(p&&!(_backupImportMode==='file'&&_backupFileIsPlainJson))p.style.display='';}
+function openBackupModal(){_backupFileData=null;_backupFileIsPlainJson=false;_backupFileIsCode=false;_backupImportMode='code';_backupExportFormat='code';document.getElementById('bk-export-pass1').value='';document.getElementById('bk-export-pass2').value='';document.getElementById('bk-import-pass').value='';document.getElementById('bk-import-code').value='';document.getElementById('bk-export-code').value='';document.getElementById('bk-export-json').value='';document.getElementById('bk-code-result').style.display='none';document.getElementById('bk-json-result').style.display='none';document.getElementById('bk-export-error').textContent='';document.getElementById('bk-import-error').textContent='';document.getElementById('bk-drop-label').textContent='Clique ou arraste o arquivo .btcbak ou .json aqui';document.getElementById('bk-strength-row').style.display='none';document.getElementById('bk-export-btn').textContent='Gerar Backup';const p=document.getElementById('bk-import-pass')?.parentElement;if(p)p.style.display='';backupShowTab('export');backupSetExportFormat('code');document.getElementById('backup-modal-overlay').classList.remove('hidden');}
+function closeBackupModal(){document.getElementById('backup-modal-overlay').classList.add('hidden');_backupFileData=null;_backupFileIsPlainJson=false;_backupFileIsCode=false;}
 
-function buildAppLogFileContent() {
-    const header = [
-        'BTC Stack — Log de Diagnóstico',
-        `Gerado em: ${new Date().toLocaleString()}`,
-        `User-Agent: ${navigator.userAgent}`,
-        'Este arquivo contém apenas eventos técnicos (erros, avisos e status',
-        'de operações) para ajudar a identificar bugs da plataforma. Não inclui',
-        'valores de aportes/vendas, saldos, senhas ou endereços.',
-        '='.repeat(48),
-        ''
-    ];
-    return header.join('\n') + getAppLogLines().join('\n') + '\n';
-}
-
-const APPLOG_ICON_PATHS = {
-    success: '<polyline points="20 6 9 17 4 12"/>',
-    error:   '<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>',
-    warn:    '<path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>',
-    info:    '<circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>'
-};
-
-function updateAppLogTimestamp() {
-    const el = document.getElementById('applog-updated');
-    if (el) el.textContent = `Atualizado às ${new Date().toLocaleTimeString('pt-BR')}`;
-}
-
-function renderAppLogList() {
-    const listEl = document.getElementById('applog-list');
-    if (!listEl) return;
-    listEl.innerHTML = '';
-    updateAppLogTimestamp();
-
-    if (!_appLogs.length) {
-        const empty = document.createElement('div');
-        empty.className = 'applog-empty';
-        empty.textContent = 'Nenhum log ainda…';
-        listEl.appendChild(empty);
-        return;
-    }
-
-    _appLogs.forEach(l => {
-        const type = APPLOG_ICON_PATHS[l.type] ? l.type : 'info';
-        const path = APPLOG_ICON_PATHS[type];
-
-        const row = document.createElement('div');
-        row.className = `applog-entry type-${type}`;
-        row.innerHTML =
-            `<span class="applog-entry-icon"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">${path}</svg></span>` +
-            `<span>[${l.timestamp}] ${l.msg}</span>`;
-        listEl.appendChild(row);
-    });
-    listEl.scrollTop = listEl.scrollHeight;
-}
-
-function refreshAppLogView() {
-    renderAppLogList();
-    showToast('Log atualizado.', 'info');
-}
-
-function openAppLogViewer() {
-    closeDrawer();
-    renderAppLogList();
-    document.getElementById('applog-modal-overlay').classList.remove('hidden');
-}
-
-function closeAppLogViewer() {
-    document.getElementById('applog-modal-overlay').classList.add('hidden');
-}
-
-document.addEventListener('DOMContentLoaded', () => {
-    const overlay = document.getElementById('applog-modal-overlay');
-    if (overlay) {
-        overlay.addEventListener('click', function(e) {
-            if (e.target === this) closeAppLogViewer();
-        });
-    }
-});
-
-function copyAppLog() {
-    const text = getAppLogLines().join('\n');
-    navigator.clipboard.writeText(text).then(() => {
-        showToast('✓ Log copiado para a área de transferência!', 'success');
-    }).catch(() => {
-        showToast('Não foi possível copiar o log.', 'error');
-    });
-}
-
-function clearAppLog() {
-    _appLogs = [];
-    renderAppLogList();
-    showToast('Log limpo.', 'info');
-}
-
-// Captura automaticamente erros não tratados e promises rejeitadas, para que
-// o log reflita o que a plataforma está realmente fazendo.
-window.addEventListener('error', function(e) {
-    addAppLog(`Erro: ${e.message} (${e.filename || '?'}:${e.lineno || 0}:${e.colno || 0})`, 'error');
-});
-window.addEventListener('unhandledrejection', function(e) {
-    const reason = e.reason && e.reason.message ? e.reason.message : String(e.reason);
-    addAppLog(`Promise rejeitada: ${reason}`, 'error');
-});
-
-async function exportAppLog() {
-    const content = buildAppLogFileContent();
-    const blob = new Blob([content], { type: 'text/plain' });
-    const fileName = `btc-stack-log-${todayLocalStr()}.txt`;
-    const isAndroidApp = /android/i.test(navigator.userAgent);
-
-    let downloadSuccess = false;
-
-    // Método 0: Web Share API com arquivo — abre o menu NATIVO de
-    // compartilhamento do Android/iOS (Arquivos, Google Drive, WhatsApp,
-    // e-mail, Bluetooth etc). É o único método que realmente deixa o
-    // usuário ESCOLHER onde salvar quando o app está empacotado pelo
-    // Median.co: downloads via Blob URL / Data URL não passam pelo
-    // interceptador nativo de downloads do Median (que só reconhece
-    // requisições de rede reais com Content-Disposition, ou
-    // median.share.downloadFile() com uma URL pública) — por isso pareciam
-    // "funcionar" (sem erro no JS) mas o arquivo não aparecia em lugar
-    // nenhum dentro do app instalado.
-    if (window.navigator && navigator.share) {
-        try {
-            const file = new File([blob], fileName, { type: 'text/plain' });
-            const shareData = { files: [file], title: 'Log do BTC Stack' };
-            if (!navigator.canShare || navigator.canShare(shareData)) {
-                await navigator.share(shareData);
-                downloadSuccess = true;
-                addAppLog('✓ Exportação de log — Web Share (arquivo) funcionou!', 'success');
-            } else {
-                addAppLog('Exportação de log — dispositivo não aceita compartilhar arquivos, tentando outro método…', 'warn');
-            }
-        } catch (shareErr) {
-            if (shareErr.name === 'AbortError') {
-                addAppLog('Exportação de log cancelada pelo usuário', 'warn');
-                renderAppLogList();
-                return;
-            }
-            addAppLog(`Exportação de log — Web Share falhou: ${shareErr.message}`, 'warn');
+document.getElementById('backup-modal-overlay').addEventListener('click',e=>{if(e.target===e.currentTarget)closeBackupModal();});
+async function backupExport(){
+    const err=document.getElementById('bk-export-error'),btn=document.getElementById('bk-export-btn');
+    err.textContent='';
+    const pw1=document.getElementById('bk-export-pass1').value,pw2=document.getElementById('bk-export-pass2').value;
+    if(!pw1||pw1.length<6){err.textContent='Senha deve ter no mínimo 6 caracteres.';return;}
+    if(pw1!==pw2){err.textContent='As senhas não coincidem.';return;}
+    const android=/android/i.test(navigator.userAgent);
+    const wrapped=typeof window.median!=='undefined'||/\bwv\)/.test(navigator.userAgent);
+    const wantJson=_backupExportFormat==='json';
+    try{
+        btn.disabled=true;btn.textContent='Gerando…';
+        addAppLog(`Iniciando backup criptografado (${wantJson?'JSON':'código'})…`,'info');
+        const saltBytes=crypto.getRandomValues(new Uint8Array(16));
+        const saltB64=btoa(String.fromCharCode(...saltBytes));
+        const key=await backupWithTimeout(deriveAesKeyFromPassword(pw1,saltB64),15000,'derivação de chave (PBKDF2)');
+        addAppLog('Chave derivada, comprimindo dados…','info');
+        const plainBytesForBackup=backupBinaryPack(aportes,vendas);
+        // Tenta comprimir para deixar o backup bem mais curto. Se travar ou falhar no WebView
+        // (timeout de 8s), cai automaticamente para o modo sem compressão em vez de travar a tela.
+        let packed;
+        try{
+            packed=await backupWithTimeout(backupCompressBytes(plainBytesForBackup),8000,'compressão');
+        }catch(compErr){
+            addAppLog(`Compressão indisponível/travou (${compErr.message}); usando backup sem compressão.`,'warn');
+            packed={bytes:plainBytesForBackup,compressed:false};
         }
-    }
+        addAppLog(`Dados preparados (${packed.compressed?'comprimidos':'sem compressão'}), criptografando…`,'info');
+        const encryptedBytes=await backupWithTimeout(backupEncryptBytes(key,packed.bytes),15000,'criptografia (AES-GCM)');
 
-    // Método 1: File System Access API (Desktop) — mesmo método usado no
-    // export de backup, dá ao usuário a opção de escolher onde salvar.
-    if (!downloadSuccess && window.showSaveFilePicker && !isAndroidApp) {
-        try {
-            const fileHandle = await window.showSaveFilePicker({
-                suggestedName: fileName,
-                types: [{ description: 'BTC Stack Log', accept: { 'text/plain': ['.txt'] } }],
-            });
-            const writable = await fileHandle.createWritable();
-            await writable.write(blob);
-            await writable.close();
-            downloadSuccess = true;
-            addAppLog('✓ Exportação de log — File System Access API funcionou!', 'success');
-        } catch (pickerErr) {
-            if (pickerErr.name === 'AbortError') {
-                addAppLog('Exportação de log cancelada pelo usuário', 'warn');
-                renderAppLogList();
-                return;
-            }
-            addAppLog(`Exportação de log — File System Access falhou: ${pickerErr.message}`, 'warn');
-        }
-    }
-
-    // Método 2: Blob URL + <a> (funciona na maioria dos navegadores/WebViews)
-    if (!downloadSuccess) {
-        try {
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = fileName;
-            a.style.display = 'none';
-            document.body.appendChild(a);
-            a.click();
-            setTimeout(() => {
-                try {
-                    document.body.removeChild(a);
-                    URL.revokeObjectURL(url);
-                } catch (e) {}
-            }, 500);
-            downloadSuccess = true;
-            addAppLog('✓ Exportação de log — Blob URL funcionou!', 'success');
-        } catch (blobErr) {
-            addAppLog(`Exportação de log — Blob URL falhou: ${blobErr.message}`, 'warn');
-        }
-    }
-
-    // Método 3: Data URL + iframe (fallback para WebViews restritivas, ex: Android)
-    if (!downloadSuccess) {
-        try {
-            const reader = new FileReader();
-            reader.onerror = () => {
-                addAppLog(`Exportação de log — Data URL falhou: ${reader.error && reader.error.message}`, 'warn');
-            };
-            reader.onload = () => {
-                const iframe = document.createElement('iframe');
-                iframe.style.display = 'none';
-                iframe.src = reader.result;
-                iframe.download = fileName;
-                document.body.appendChild(iframe);
-                addAppLog('✓ Exportação de log — Data URL + iframe funcionou!', 'success');
-                setTimeout(() => {
-                    try { document.body.removeChild(iframe); } catch (e) {}
-                }, 1000);
-            };
-            reader.readAsDataURL(blob);
-            downloadSuccess = true;
-        } catch (iframeErr) {
-            addAppLog(`Exportação de log — Data URL falhou: ${iframeErr.message}`, 'warn');
-        }
-    }
-
-    // Método 4: window.open com Data URL (último recurso para WebView, igual ao backup)
-    if (!downloadSuccess) {
-        try {
-            const reader = new FileReader();
-            reader.onerror = () => {
-                addAppLog(`Exportação de log — window.open falhou: ${reader.error && reader.error.message}`, 'error');
-            };
-            reader.onload = () => {
-                window.open(reader.result, '_blank');
-                addAppLog('✓ Exportação de log — window.open acionado (verifique abas/downloads)', 'success');
-            };
-            reader.readAsDataURL(blob);
-            downloadSuccess = true;
-        } catch (openErr) {
-            addAppLog(`Exportação de log — window.open falhou: ${openErr.message}`, 'error');
-        }
-    }
-
-    if (downloadSuccess) {
-        addAppLog('Log exportado pelo usuário.', 'info');
-        showToast('✓ Log exportado!', 'success');
-    } else {
-        addAppLog('⚠️ Nenhum método de exportação de log funcionou.', 'error');
-        showToast('Não foi possível exportar o log. Verifique permissões.', 'error');
-    }
-    renderAppLogList();
-}
-
-function backupStrengthUpdate() {
-    const pw  = document.getElementById('bk-export-pass1').value;
-    const row = document.getElementById('bk-strength-row');
-    if (!pw) { row.style.display = 'none'; return; }
-    row.style.display = 'flex';
-    const s = lpassStrength(pw);
-    const colors = ['#e74c3c','#e67e22','#f1c40f','#2ecc71','#00e87a'];
-    const labels = ['Muito fraca','Fraca','Razoável','Boa','Forte'];
-    document.getElementById('bk-strength-fill').style.width      = (s*25)+'%';
-    document.getElementById('bk-strength-fill').style.background = colors[s];
-    document.getElementById('bk-strength-label').textContent     = labels[s];
-    document.getElementById('bk-strength-label').style.color     = colors[s];
-}
-
-async function backupExport() {
-    const pw1 = document.getElementById('bk-export-pass1').value;
-    const pw2 = document.getElementById('bk-export-pass2').value;
-    const err = document.getElementById('bk-export-error');
-    err.textContent = '';
-
-    if (!pw1 || pw1.length < 6) { err.textContent = 'Senha deve ter no mínimo 6 caracteres.'; addAppLog('Senha inválida (< 6 caracteres)', 'error'); return; }
-    if (pw1 !== pw2) { err.textContent = 'As senhas não coincidem.'; addAppLog('Senhas não coincidem', 'error'); return; }
-
-    try {
-        addAppLog('Iniciando exportação de backup…', 'info');
-        
-        // Deriva chave temporária só para o backup (salt novo a cada export)
-        const saltBytes = crypto.getRandomValues(new Uint8Array(32));
-        const saltB64   = btoa(String.fromCharCode(...saltBytes));
-        const key       = await deriveAesKeyFromPassword(pw1, saltB64);
-        addAppLog('Chave derivada com sucesso (PBKDF2)', 'success');
-
-        const plain   = JSON.stringify({ aportes, vendas, exportedAt: Date.now(), v: 1 });
-        const cipher  = await aesGcmEncrypt(key, plain);
-        addAppLog(`Dados criptografados (${aportes.length} aportes, ${vendas.length} saídas)`, 'success');
-
-        const payload = JSON.stringify({
-            v: 1,
-            app: 'btc-portfolio',
-            exportedAt: Date.now(),
-            enc: true,
-            salt: saltB64,
-            data: cipher,
-        });
-
-        const blob     = new Blob([payload], { type: 'application/json' });
-        const date     = todayLocalStr();
-        const fileName = `btc-stack-${date}.btcbak`;
-        
-        addAppLog(`Arquivo: ${fileName} (${(blob.size / 1024).toFixed(1)} KB)`, 'info');
-
-        const isAndroidApp = /android/i.test(navigator.userAgent);
-        if (isAndroidApp) {
-            addAppLog('Plataforma: Android (pula File System Access API)', 'info');
-        } else {
-            addAppLog('Plataforma: Desktop/Web', 'info');
-        }
-        
-        let downloadSuccess = false;
-
-        // Método 1: File System Access API (Desktop)
-        if (window.showSaveFilePicker && !isAndroidApp) {
-            try {
-                addAppLog('Tentando: File System Access API…', 'info');
-                const fileHandle = await window.showSaveFilePicker({
-                    suggestedName: fileName,
-                    types: [{ description: 'BTC Stack Backup', accept: { 'application/json': ['.btcbak'] } }],
-                });
-                const writable = await fileHandle.createWritable();
-                await writable.write(blob);
-                await writable.close();
-                downloadSuccess = true;
-                addAppLog('✓ File System Access API funcionou!', 'success');
-            } catch (pickerErr) {
-                if (pickerErr.name === 'AbortError') {
-                    addAppLog('Cancelado pelo usuário', 'warn');
-                    return;
-                }
-                addAppLog(`File System Access falhou: ${pickerErr.message}`, 'warn');
-            }
+        if(wantJson){
+            const payload=JSON.stringify({v:2,app:'btc-portfolio',exportedAt:Date.now(),enc:true,cmp:packed.compressed?'gzip':'none',salt:saltB64,data:backupBytesToB64Url(encryptedBytes)},null,2);
+            document.getElementById('bk-export-json').value=payload;
+            document.getElementById('bk-json-size').textContent=`${payload.length.toLocaleString('pt-BR')} caracteres`;
+            document.getElementById('bk-json-result').style.display='';
+            btn.textContent='Gerar novo JSON';
+            addAppLog(`✓ Backup JSON criptografado gerado (${aportes.length} aportes, ${vendas.length} saídas).`,'success');
+            showToast('✓ Backup JSON criado. Guarde o arquivo e a senha.','success');
+            return;
         }
 
-        // Método 2: Blob URL com <a> tag (mais comum)
-        if (!downloadSuccess) {
-            try {
-                addAppLog('Tentando: Blob URL + <a> tag…', 'info');
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = fileName;
-                a.style.display = 'none';
-                document.body.appendChild(a);
-                a.click();
-                
-                // Garante limpeza
-                setTimeout(() => {
-                    try {
-                        document.body.removeChild(a);
-                        URL.revokeObjectURL(url);
-                    } catch(e) {}
-                }, 500);
-                
-                downloadSuccess = true;
-                addAppLog('✓ Blob URL funcionou!', 'success');
-            } catch (blobErr) {
-                addAppLog(`Blob URL falhou: ${blobErr.message}`, 'warn');
-            }
+        const code=backupBuildCode(saltBytes,encryptedBytes,packed.compressed);
+        if(android||wrapped){
+            document.getElementById('bk-export-code').value=code;
+            document.getElementById('bk-code-size').textContent=`${code.length.toLocaleString('pt-BR')} caracteres`;
+            document.getElementById('bk-code-result').style.display='';
+            btn.textContent='Gerar novo backup';
+            addAppLog(`✓ Backup criptografado gerado (${aportes.length} aportes, ${vendas.length} saídas).`,'success');
+            showToast('✓ Backup criado. Copie o código e guarde a senha.','success');
+            return;
         }
+        const payload=JSON.stringify({v:2,app:'btc-portfolio',exportedAt:Date.now(),enc:true,cmp:packed.compressed?'gzip':'none',salt:saltB64,data:backupBytesToB64Url(encryptedBytes)});
+        const blob=new Blob([payload],{type:'application/json'});
+        const fileName=`btc-stack-${todayLocalStr()}.btcbak`;
+        if(window.showSaveFilePicker){
+            try{
+                const handle=await window.showSaveFilePicker({suggestedName:fileName,types:[{description:'BTC Stack Backup',accept:{'application/json':['.btcbak']}}]});
+                const writable=await handle.createWritable();await writable.write(blob);await writable.close();
+                addAppLog(`✓ .btcbak salvo pelo navegador: ${fileName}`,'success');showToast('✓ Backup .btcbak salvo!','success');closeBackupModal();return;
+            }catch(e){if(e.name==='AbortError'){btn.disabled=false;btn.textContent='Gerar Backup';return;}addAppLog(`File System Access falhou: ${e.message}`,'warn');}
+        }
+        const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=fileName;a.style.display='none';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500);
+        addAppLog(`✓ .btcbak encaminhado ao navegador: ${fileName}`,'success');showToast('✓ Backup .btcbak exportado!','success');closeBackupModal();
+    }catch(e){err.textContent='Erro ao gerar backup: '+e.message;addAppLog(`ERRO no backup criptografado: ${e.message}`,'error');}
+    finally{btn.disabled=false;if(btn.textContent==='Gerando…')btn.textContent='Gerar Backup';}
+}
 
-        // Método 3: Data URL com iframe (WebView Android compatível)
-        if (!downloadSuccess) {
-            try {
-                addAppLog('Tentando: Data URL + iframe…', 'info');
-                const reader = new FileReader();
-                reader.onload = () => {
-                    const dataUrl = reader.result;
-                    const iframe = document.createElement('iframe');
-                    iframe.style.display = 'none';
-                    iframe.src = dataUrl;
-                    iframe.download = fileName;
-                    document.body.appendChild(iframe);
-                    addAppLog('✓ Data URL + iframe funcionou!', 'success');
-                    
-                    setTimeout(() => {
-                        try {
-                            document.body.removeChild(iframe);
-                        } catch(e) {}
-                    }, 1000);
-                };
-                reader.readAsDataURL(blob);
-                downloadSuccess = true;
-            } catch (iframeErr) {
-                addAppLog(`Data URL falhou: ${iframeErr.message}`, 'warn');
-            }
-        }
+async function backupCopyCode() {
+    const code=document.getElementById('bk-export-code')?.value||''; if(!code)return;
+    try{if(!navigator.clipboard?.writeText)throw 0;await navigator.clipboard.writeText(code);showToast('✓ Código copiado!','success');addAppLog('Código de backup copiado para a área de transferência.','info');}
+    catch{copyTextFallback(code,'Copiar código de backup');}
+}
 
-        // Método 4: Window.open com Data URL (último recurso para WebView)
-        if (!downloadSuccess) {
-            try {
-                addAppLog('Tentando: window.open (último recurso)…', 'info');
-                const reader = new FileReader();
-                reader.onload = () => {
-                    const dataUrl = reader.result;
-                    window.open(dataUrl, '_blank');
-                    addAppLog('✓ window.open acionado (verifique abas/downloads)', 'success');
-                };
-                reader.readAsDataURL(blob);
-                downloadSuccess = true;
-            } catch (openErr) {
-                addAppLog(`window.open falhou: ${openErr.message}`, 'error');
-            }
-        }
-
-        if (!downloadSuccess) {
-            addAppLog('⚠️ Nenhum método de download funcionou. Verifique permissões.', 'error');
-            err.textContent = 'Nenhum método de download disponível. Verifique permissões no Median.co.';
-        } else {
-            addAppLog('Download iniciado com sucesso!', 'success');
-        }
-
-        closeBackupModal();
-        const vendasSuffix = vendas.length > 0 ? ` e ${vendas.length} saída(s)` : '';
-        const toastMsg = `✓ Backup exportado com ${aportes.length} aporte(s)${vendasSuffix}!`;
-        
-        if (isAndroidApp) {
-            addAppLog('📱 Verifique pasta Downloads ou notificação de download', 'info');
-        }
-        
-        showToast(toastMsg, 'success');
-        
-    } catch(e) {
-        err.textContent = 'Erro ao exportar: ' + e.message;
-        addAppLog(`ERRO: ${e.message}`, 'error');
-    }
+function backupSelectCode() {
+    const el = document.getElementById('bk-export-code');
+    el.focus();
+    el.select();
+    try { el.setSelectionRange(0, el.value.length); } catch (e) {}
 }
 
 function backupHandleDrop(event) {
@@ -10562,47 +10238,106 @@ function backupFileSelected(input) {
 }
 
 function backupLoadFile(file) {
-    const reader = new FileReader();
-    reader.onload = (e) => {
-        try {
-            _backupFileData = JSON.parse(e.target.result);
-            document.getElementById('bk-drop-label').textContent = '✓ ' + file.name + ' carregado';
-            document.getElementById('bk-import-error').textContent = '';
-        } catch {
-            document.getElementById('bk-import-error').textContent = 'Arquivo inválido ou corrompido.';
-            _backupFileData = null;
+    const reader=new FileReader();
+    reader.onload=e=>{
+        const raw=String(e.target.result||'').trim();
+        if(raw.startsWith('BTCSTACK-BACKUP-V2.')){
+            _backupFileData=raw;_backupFileIsPlainJson=false;_backupFileIsCode=true;
+            document.getElementById('bk-drop-label').textContent='✓ '+file.name+' (código de backup)';
+            document.getElementById('bk-import-error').textContent='';
+            const p=document.getElementById('bk-import-pass')?.parentElement;if(p)p.style.display='';
+            return;
         }
+        try{const parsed=JSON.parse(raw);_backupFileData=parsed;_backupFileIsPlainJson=!!(parsed&&parsed.app==='btc-stack'&&parsed.encrypted===false&&Array.isArray(parsed.aportes));_backupFileIsCode=false;document.getElementById('bk-drop-label').textContent='✓ '+file.name+(_backupFileIsPlainJson?' (JSON sem criptografia)':'');document.getElementById('bk-import-error').textContent='';const p=document.getElementById('bk-import-pass')?.parentElement;if(p)p.style.display=_backupFileIsPlainJson?'none':'';}catch{document.getElementById('bk-import-error').textContent='Arquivo inválido ou corrompido.';_backupFileData=null;_backupFileIsPlainJson=false;_backupFileIsCode=false;}
     };
     reader.readAsText(file);
 }
 
+async function backupParseBackupObject(bk, pw) {
+    if (bk.app === 'btc-portfolio' && bk.v === 1 && bk.enc && bk.salt && bk.data) {
+        const key = await deriveAesKeyFromPassword(pw, bk.salt);
+        return JSON.parse(await aesGcmDecrypt(key, bk.data));
+    } else if (bk.app === 'btc-portfolio' && bk.v === 2 && bk.enc && bk.salt && bk.data) {
+        const saltBytes = backupB64UrlToBytes(String(bk.salt).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, ''));
+        if (saltBytes.length !== 16) throw new Error('Salt do backup inválido.');
+        const saltB64 = btoa(String.fromCharCode(...saltBytes));
+        const key = await deriveAesKeyFromPassword(pw, saltB64);
+        const encryptedBytes = backupB64UrlToBytes(bk.data);
+        const packed = await backupDecryptBytes(key, encryptedBytes);
+        const plainBytes = await backupDecompressBytes(packed, bk.cmp === 'gzip');
+        if (plainBytes[0] === BACKUP_BIN_MAGIC) {
+            return backupBinaryUnpack(plainBytes);
+        }
+        let parsed = JSON.parse(new TextDecoder().decode(plainBytes));
+        if (parsed && parsed.v === 3) parsed = backupCompactUnpack(parsed);
+        return parsed;
+    }
+    return null;
+}
+
 async function backupImport() {
-    const pw  = document.getElementById('bk-import-pass').value;
+    const pw = document.getElementById('bk-import-pass').value;
     const err = document.getElementById('bk-import-error');
     err.textContent = '';
 
-    if (!_backupFileData) { err.textContent = 'Selecione um arquivo de backup primeiro.'; return; }
-    if (!pw)              { err.textContent = 'Digite a senha do backup.'; return; }
-
-    const bk = _backupFileData;
-    if (bk.app !== 'btc-portfolio' || bk.v !== 1) {
-        err.textContent = 'Arquivo de backup incompatível.'; return;
-    }
-    if (!bk.enc || !bk.salt || !bk.data) {
-        err.textContent = 'Formato de backup inválido.'; return;
-    }
+    const codeTextTrimmed = document.getElementById('bk-import-code').value.trim();
+    const isPastedPlainJson = _backupImportMode === 'code' && codeTextTrimmed.startsWith('{') && (() => {
+        try { const j = JSON.parse(codeTextTrimmed); return !!(j && j.app === 'btc-stack' && j.encrypted === false && Array.isArray(j.aportes)); }
+        catch { return false; }
+    })();
+    if (!isPastedPlainJson && (_backupImportMode === 'code' || !_backupFileIsPlainJson) && !pw) { err.textContent = 'Digite a senha do backup.'; return; }
 
     try {
-        const key     = await deriveAesKeyFromPassword(pw, bk.salt);
-        const plain   = await aesGcmDecrypt(key, bk.data);
-        const parsed  = JSON.parse(plain);
+        let parsed;
 
-        if (!Array.isArray(parsed.aportes)) { err.textContent = 'Dados corrompidos no backup.'; return; }
+        if (_backupImportMode === 'code') {
+            const code = document.getElementById('bk-import-code').value.trim();
+            if (!code) { err.textContent = 'Cole o código de backup primeiro.'; return; }
+            if (code.startsWith('{')) {
+                // Texto colado é um JSON de backup (ex: copiado pelo botão "Copiar JSON"),
+                // não o código compacto. Processa pelo mesmo caminho do arquivo JSON.
+                let bkJson;
+                try { bkJson = JSON.parse(code); }
+                catch { err.textContent = 'JSON colado inválido ou corrompido.'; return; }
+                addAppLog('Iniciando importação de JSON colado…', 'info');
+                const isPlainJson = !!(bkJson && bkJson.app === 'btc-stack' && bkJson.encrypted === false && Array.isArray(bkJson.aportes));
+                if (isPlainJson) {
+                    parsed = bkJson;
+                } else {
+                    if (!pw) { err.textContent = 'Digite a senha do backup.'; return; }
+                    parsed = await backupParseBackupObject(bkJson, pw);
+                    if (parsed === null) { err.textContent = 'Arquivo de backup incompatível.'; return; }
+                }
+            } else {
+                addAppLog('Iniciando importação do código de backup V2…', 'info');
+                parsed = await backupParseCode(code, pw);
+            }
+        } else {
+            if (!_backupFileData) { err.textContent = 'Selecione um arquivo de backup primeiro.'; return; }
+            if (_backupFileIsCode) {
+                addAppLog('Iniciando importação de código de backup a partir de arquivo…', 'info');
+                parsed = await backupParseCode(_backupFileData, pw);
+            } else {
+                const bk = _backupFileData;
+                if (_backupFileIsPlainJson) {
+                    parsed = bk;
+                } else {
+                    parsed = await backupParseBackupObject(bk, pw);
+                    if (parsed === null) { err.textContent = 'Arquivo de backup incompatível.'; return; }
+                }
+            }
+        }
+
+        if (!Array.isArray(parsed.aportes)) {
+            err.textContent = 'Dados corrompidos no backup.';
+            return;
+        }
 
         const validados = validateAportesArray(parsed.aportes);
-        if (!validados || validados.length === 0) { err.textContent = 'Nenhum aporte válido encontrado no backup.'; return; }
-        // vendas/gastos são opcionais no backup (compatibilidade com backups
-        // exportados antes dessa correção, que só continham aportes)
+        if (!validados || validados.length === 0) {
+            err.textContent = 'Nenhum aporte válido encontrado no backup.';
+            return;
+        }
         const validadosVendas = validateVendasArray(parsed.vendas);
 
         const hasLocal = aportes.length > 0 || vendas.length > 0;
@@ -10612,16 +10347,16 @@ async function backupImport() {
                 'Importar Backup',
                 safeConfirmBody([
                     { label: 'Aportes no backup', value: validados.length },
-                    { label: 'Saídas no backup',  value: validadosVendas.length },
-                    { label: 'Aportes locais',    value: aportes.length },
-                    { label: 'Saídas locais',     value: vendas.length },
+                    { label: 'Saídas no backup', value: validadosVendas.length },
+                    { label: 'Aportes locais', value: aportes.length },
+                    { label: 'Saídas locais', value: vendas.length },
                     { br: true },
                     { text: 'Deseja substituir os dados locais ou mesclar?' },
                 ]),
                 [
-                    { label: 'Cancelar',    cls: 'confirm-btn-cancel', value: 'cancel'  },
-                    { label: 'Mesclar',  cls: 'confirm-btn-merge',  value: 'merge'   },
-                    { label: 'Substituir',cls: 'confirm-btn-ok',     value: 'replace' },
+                    { label: 'Cancelar', cls: 'confirm-btn-cancel', value: 'cancel' },
+                    { label: 'Mesclar', cls: 'confirm-btn-merge', value: 'merge' },
+                    { label: 'Substituir', cls: 'confirm-btn-ok', value: 'replace' },
                 ]
             );
         }
@@ -10630,9 +10365,8 @@ async function backupImport() {
 
         if (answer === 'replace') {
             aportes = validados;
-            vendas  = validadosVendas;
+            vendas = validadosVendas;
         } else {
-            // Merge: union by ID
             const localIds = new Set(aportes.map(a => String(a.id)));
             let added = 0;
             for (const a of validados) {
@@ -10656,16 +10390,20 @@ async function backupImport() {
         renderPortfolio();
         if (typeof renderVendas === 'function') renderVendas();
         closeBackupModal();
+
         if (answer === 'replace') {
             const vendasSuffix = validadosVendas.length > 0 ? ` e ${validadosVendas.length} saída(s)` : '';
             showToast(`✓ ${validados.length} aporte(s)${vendasSuffix} importados com sucesso!`, 'success');
         }
-    } catch(e) {
-        if (e.name === 'OperationError' || e.message?.includes('decrypt')) {
-            err.textContent = 'Senha incorreta ou arquivo corrompido.';
+        addAppLog(`✓ Backup importado: ${validados.length} aportes, ${validadosVendas.length} saídas.`, 'success');
+    } catch (e) {
+        const msg = String(e && e.message || e);
+        if (e.name === 'OperationError' || /decrypt|operation/i.test(msg)) {
+            err.textContent = 'Senha incorreta ou código/arquivo corrompido.';
         } else {
-            err.textContent = 'Erro ao importar: ' + e.message;
+            err.textContent = msg || 'Erro ao importar o backup.';
         }
+        addAppLog(`ERRO na importação do backup: ${msg}`, 'error');
     }
 }
 

@@ -36,6 +36,30 @@ const API_ORIGINS = [
 
 const API_TTL_MS = 5 * 60 * 1000;
 
+// ══════════════════════════════════════════════════════════════
+// DOWNLOAD NATIVO (Content-Disposition) — usado pelo Backup e pelo
+// Exportar Log dentro de apps empacotados (Median.co e afins).
+// A página guarda o arquivo aqui via postMessage antes de navegar
+// para /__dl__/<token>/<nomeDoArquivo>; o handler de fetch abaixo
+// responde essa navegação com um header Content-Disposition real,
+// que é o formato que o interceptador nativo de downloads do
+// wrapper (Median) reconhece — abrindo a tela do sistema para
+// escolher a pasta e concedendo a permissão de armazenamento nela,
+// mesmo sem nenhuma requisição de rede verdadeira ter ocorrido.
+// Em memória apenas: se o SW for encerrado entre o postMessage e a
+// navegação (raro, é quase instantâneo), o download simplesmente
+// cai nos métodos de fallback já existentes na página.
+// ══════════════════════════════════════════════════════════════
+const pendingDownloads = new Map();
+const PENDING_DOWNLOAD_TTL_MS = 2 * 60 * 1000;
+
+function pruneOldPendingDownloads() {
+    const now = Date.now();
+    for (const [token, entry] of pendingDownloads) {
+        if (now - entry.ts > PENDING_DOWNLOAD_TTL_MS) pendingDownloads.delete(token);
+    }
+}
+
 self.addEventListener('install', event => {
     event.waitUntil(
         caches.open(SHELL_CACHE)
@@ -67,6 +91,32 @@ self.addEventListener('fetch', event => {
 
 
     if (url.protocol === 'wss:' || url.protocol === 'ws:') return;
+
+    // ── Interceptação de download nativo (ver bloco pendingDownloads acima) ──
+    const dlMatch = url.pathname.match(/\/__dl__\/([a-zA-Z0-9_-]+)\/([^/]+)$/);
+    if (dlMatch) {
+        const token = dlMatch[1];
+        event.respondWith((async () => {
+            const entry = pendingDownloads.get(token);
+            if (!entry) {
+                return new Response('Download expirado ou não encontrado. Volte ao app e tente exportar novamente.', {
+                    status: 404,
+                    headers: { 'Content-Type': 'text/plain; charset=utf-8' },
+                });
+            }
+            pendingDownloads.delete(token);
+            return new Response(entry.buffer, {
+                status: 200,
+                headers: {
+                    'Content-Type': entry.mimeType || 'application/octet-stream',
+                    'Content-Disposition': `attachment; filename="${entry.fileName}"`,
+                    'Content-Length': String(entry.buffer.byteLength),
+                    'Cache-Control': 'no-store',
+                },
+            });
+        })());
+        return;
+    }
 
     const isApiCall = API_ORIGINS.some(o => request.url.startsWith(o));
 
@@ -147,6 +197,7 @@ self.addEventListener('fetch', event => {
 
 self.addEventListener('message', event => {
     if (event.data === 'skipWaiting' || event.data?.type === 'SKIP_WAITING') self.skipWaiting();
+    if (event.data?.type === 'CLAIM_CLIENT') self.clients.claim();
     if (event.data === 'clearApiCache') {
         caches.delete(API_CACHE).then(() =>
             event.source?.postMessage({ type: 'apiCacheCleared' })
@@ -155,6 +206,13 @@ self.addEventListener('message', event => {
     if (event.data?.type === 'GET_VERSION') {
         const port = event.ports && event.ports[0];
         if (port) port.postMessage({ version: SW_VERSION });
+    }
+    if (event.data?.type === 'STORE_BLOB_FOR_DOWNLOAD') {
+        pruneOldPendingDownloads();
+        const { token, fileName, mimeType, buffer } = event.data;
+        pendingDownloads.set(token, { fileName, mimeType, buffer, ts: Date.now() });
+        const port = event.ports && event.ports[0];
+        if (port) port.postMessage({ ok: true, token });
     }
 });
 

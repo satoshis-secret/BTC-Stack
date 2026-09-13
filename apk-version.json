@@ -2,5 +2,5 @@
   "latestVersion": "1.1.0",
   "latestBuild": 3,
   "downloadUrl": "https://github.com/satoshis-secret/BTC-Stack/releases/latest",
-  "notes": "🐛 Correção: Exportação de backup agora funciona no Android - Problema com 'showSaveFilePicker' resolvido com fallback automático"
+  "notes": "🐛 Correção: exportação de backup/log no Android reforçada para wrappers Median; ponte nativa quando disponível, Service Worker ajustado e removido o falso positivo de salvamento."
 }
