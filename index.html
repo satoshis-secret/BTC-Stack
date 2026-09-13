@@ -48,6 +48,9 @@
             https://api.alternative.me
             https://api.bgeometrics.com
             https://min-api.cryptocompare.com
+            https://mempool.space
+            https://blockstream.info
+            https://blockchain.info
             https://www.tradingview.com https://s3.tradingview.com
             wss://stream.binance.com wss://stream.binance.com:9443;
         img-src 'self' data: https://flagcdn.com;
@@ -4734,45 +4737,56 @@ async function fetchHistPriceAllCurrencies(dateStr) {
     const [y, m, d] = dateStr.split('-');
     const result = {};
 
-    // 1) CoinGecko: um único request devolve o preço nativo de cada moeda naquela data.
-    try {
-        const cgDate = `${d}-${m}-${y}`;
-        const res = await fetch(`https://api.coingecko.com/api/v3/coins/bitcoin/history?date=${cgDate}&localization=false`);
-        if (res.ok) {
-            const data = await res.json();
-            const cp = data?.market_data?.current_price;
-            if (cp) {
-                for (const c of CURRENCIES) {
-                    const v = cp[c.code.toLowerCase()];
-                    if (typeof v === 'number' && v > 0) result[c.code] = v;
-                }
-            }
-        }
-    } catch (e) { }
+    const startMs = new Date(`${dateStr}T00:00:00Z`).getTime();
+    const endMs   = startMs + 86400000;
+    const toTs    = Math.floor(startMs / 1000) + 86400;
 
-    // 2) Para qualquer moeda que não veio da CoinGecko, tenta o par nativo na Binance
-    //    (BTCEUR, BTCBRL, BTCUSDT) e depois a CryptoCompare — ambos dão o preço
-    //    já denominado naquela moeda, sem depender do câmbio de hoje.
-    const missing = CURRENCIES.filter(c => !result[c.code]);
-    if (missing.length) {
-        const startMs = new Date(`${dateStr}T00:00:00Z`).getTime();
-        const endMs   = startMs + 86400000;
-        const toTs    = Math.floor(startMs / 1000) + 86400;
-        for (const c of missing) {
-            let price = await binanceCloseAt(BINANCE_SYMBOL[c.code], startMs, endMs).catch(() => null);
-            if (!price) price = await cryptoCompareCloseAt(c.code, toTs).catch(() => null);
-            if (price) result[c.code] = price;
-        }
+    // 1) Par nativo na Binance para cada moeda (BTCUSDT/BTCEUR/BTCBRL) — é a
+    //    fonte mais confiável e rápida (sem o rate-limit agressivo que a
+    //    CoinGecko aplica ao endpoint /history), e já vem denominado na
+    //    moeda certa (reflete o câmbio real daquele dia).
+    for (const c of CURRENCIES) {
+        const price = await binanceCloseAt(BINANCE_SYMBOL[c.code], startMs, endMs).catch(() => null);
+        if (price) result[c.code] = price;
     }
 
-    // 3) Último recurso: estimativa mensal em USD convertida pelo câmbio atual
+    // 2) Para o que faltou, tenta CryptoCompare (tsym direto na moeda).
+    let missing = CURRENCIES.filter(c => !result[c.code]);
+    for (const c of missing) {
+        const price = await cryptoCompareCloseAt(c.code, toTs).catch(() => null);
+        if (price) result[c.code] = price;
+    }
+
+    // 3) Para o que ainda faltou, tenta um único request de histórico à
+    //    CoinGecko (devolve o preço nativo em todas as moedas de uma vez).
+    missing = CURRENCIES.filter(c => !result[c.code]);
+    if (missing.length) {
+        try {
+            const cgDate = `${d}-${m}-${y}`;
+            const res = await fetch(`https://api.coingecko.com/api/v3/coins/bitcoin/history?date=${cgDate}&localization=false`);
+            if (res.ok) {
+                const data = await res.json();
+                const cp = data?.market_data?.current_price;
+                if (cp) {
+                    for (const c of missing) {
+                        const v = cp[c.code.toLowerCase()];
+                        if (typeof v === 'number' && v > 0) result[c.code] = v;
+                    }
+                }
+            }
+        } catch (e) { }
+    }
+
+    // 4) Último recurso: estimativa mensal em USD convertida pelo câmbio atual
     //    (aproximado — só usado se todas as fontes acima falharem para essa moeda).
-    if (CURRENCIES.some(c => !result[c.code])) {
+    missing = CURRENCIES.filter(c => !result[c.code]);
+    if (missing.length) {
         const tableUsd = btcPriceFromTable(dateStr);
         if (tableUsd) {
-            for (const c of CURRENCIES) {
-                if (!result[c.code]) result[c.code] = convertFiat(tableUsd, 'USD', c.code);
+            for (const c of missing) {
+                result[c.code] = convertFiat(tableUsd, 'USD', c.code);
             }
+            addAppLog(`Preço histórico de ${dateStr} aproximado para: ${missing.map(c => c.code).join(', ')} (fontes nativas indisponíveis).`, 'warn');
         }
     }
 
