@@ -4683,6 +4683,164 @@ const CURRENCIES = [
     { code: 'EUR', symbol: '€',   decimals: 2 },
 ];
 
+// Par nativo da Binance para cada moeda — usado nos fallbacks de preço
+// histórico/variação para que cada fiat reflita sua PRÓPRIA volatilidade
+// (incluindo câmbio), em vez de pegar o candle em USDT e só multiplicar
+// pela cotação de câmbio de HOJE (o que apaga qualquer efeito cambial e
+// faz BRL/EUR mostrarem exatamente a mesma variação % que USD).
+const BINANCE_SYMBOL = { USD: 'BTCUSDT', BRL: 'BTCBRL', EUR: 'BTCEUR' };
+
+// Busca o fechamento diário de um par na Binance num intervalo [startMs,endMs).
+async function binanceCloseAt(symbol, startMs, endMs, signal) {
+    try {
+        const url = `https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=1d&startTime=${startMs}&endTime=${endMs}&limit=1`;
+        const res = await fetch(url, signal ? { signal, cache: 'no-store' } : { cache: 'no-store' });
+        if (res.ok) {
+            const data = await res.json();
+            if (Array.isArray(data) && data.length > 0) {
+                const close = parseFloat(data[0][4]);
+                if (close > 0) return close;
+            }
+        }
+    } catch (e) { if (e && e.name === 'AbortError') throw e; }
+    return null;
+}
+
+// Busca o fechamento diário de BTC/tsym na CryptoCompare (suporta várias moedas nativamente).
+async function cryptoCompareCloseAt(tsym, toTs, signal) {
+    try {
+        const url = `https://min-api.cryptocompare.com/data/v2/histoday?fsym=BTC&tsym=${tsym}&limit=1&toTs=${toTs}`;
+        const res = await fetch(url, signal ? { signal } : {});
+        if (res.ok) {
+            const data = await res.json();
+            const points = data?.Data?.Data;
+            if (Array.isArray(points) && points.length > 0) {
+                const last = points[points.length - 1];
+                if (last && last.close > 0 && last.time * 1000 <= toTs * 1000) return last.close;
+            }
+        }
+    } catch (e) { if (e && e.name === 'AbortError') throw e; }
+    return null;
+}
+
+// Cache de preços históricos MULTI-MOEDA por data: histAllCurrencyPriceCache[dateStr] = {USD:.., BRL:.., EUR:..}
+// Preenchido de preferência com um único request à CoinGecko (que devolve o preço nativo
+// em cada moeda para aquela data, já refletindo o câmbio da época) — muito mais correto do
+// que converter o preço em USD para as outras moedas usando a cotação de câmbio ATUAL.
+const histAllCurrencyPriceCache = {};
+
+async function fetchHistPriceAllCurrencies(dateStr) {
+    if (histAllCurrencyPriceCache[dateStr]) return histAllCurrencyPriceCache[dateStr];
+    const [y, m, d] = dateStr.split('-');
+    const result = {};
+
+    // 1) CoinGecko: um único request devolve o preço nativo de cada moeda naquela data.
+    try {
+        const cgDate = `${d}-${m}-${y}`;
+        const res = await fetch(`https://api.coingecko.com/api/v3/coins/bitcoin/history?date=${cgDate}&localization=false`);
+        if (res.ok) {
+            const data = await res.json();
+            const cp = data?.market_data?.current_price;
+            if (cp) {
+                for (const c of CURRENCIES) {
+                    const v = cp[c.code.toLowerCase()];
+                    if (typeof v === 'number' && v > 0) result[c.code] = v;
+                }
+            }
+        }
+    } catch (e) { }
+
+    // 2) Para qualquer moeda que não veio da CoinGecko, tenta o par nativo na Binance
+    //    (BTCEUR, BTCBRL, BTCUSDT) e depois a CryptoCompare — ambos dão o preço
+    //    já denominado naquela moeda, sem depender do câmbio de hoje.
+    const missing = CURRENCIES.filter(c => !result[c.code]);
+    if (missing.length) {
+        const startMs = new Date(`${dateStr}T00:00:00Z`).getTime();
+        const endMs   = startMs + 86400000;
+        const toTs    = Math.floor(startMs / 1000) + 86400;
+        for (const c of missing) {
+            let price = await binanceCloseAt(BINANCE_SYMBOL[c.code], startMs, endMs).catch(() => null);
+            if (!price) price = await cryptoCompareCloseAt(c.code, toTs).catch(() => null);
+            if (price) result[c.code] = price;
+        }
+    }
+
+    // 3) Último recurso: estimativa mensal em USD convertida pelo câmbio atual
+    //    (aproximado — só usado se todas as fontes acima falharem para essa moeda).
+    if (CURRENCIES.some(c => !result[c.code])) {
+        const tableUsd = btcPriceFromTable(dateStr);
+        if (tableUsd) {
+            for (const c of CURRENCIES) {
+                if (!result[c.code]) result[c.code] = convertFiat(tableUsd, 'USD', c.code);
+            }
+        }
+    }
+
+    if (Object.keys(result).length) histAllCurrencyPriceCache[dateStr] = result;
+    return result;
+}
+
+// Garante que temos preço histórico nativo (multi-moeda) para a data de cada
+// aporte/venda registrado. Busca só o que ainda não está em cache e, se
+// conseguir dados novos, manda re-renderizar o portfólio para refletir o
+// custo médio/P&L corretos por moeda (em vez do fallback aproximado).
+let _histPriceFetchBusy = false;
+async function ensureHistPricesForAportes() {
+    if (_histPriceFetchBusy) return;
+    const dates = new Set();
+    (aportes || []).forEach(a => a && a.data && dates.add(a.data));
+    (vendas  || []).forEach(v => v && v.data && dates.add(v.data));
+    const pending = [...dates].filter(d => !histAllCurrencyPriceCache[d]);
+    if (!pending.length) return;
+
+    _histPriceFetchBusy = true;
+    let gotNew = false;
+    try {
+        for (const d of pending) {
+            const before = !!histAllCurrencyPriceCache[d];
+            await fetchHistPriceAllCurrencies(d);
+            if (!before && histAllCurrencyPriceCache[d]) gotNew = true;
+            await new Promise(r => setTimeout(r, 150));
+        }
+    } finally {
+        _histPriceFetchBusy = false;
+    }
+    if (gotNew) {
+        renderPortfolio();
+        if (typeof refreshPatrimonioChart === 'function') refreshPatrimonioChart();
+    }
+}
+
+// Preço histórico nativo (em curCode) de um aporte específico: usa o cache
+// multi-moeda quando disponível (o mais correto — reflete o câmbio da época);
+// senão cai no método antigo (converte o valor investido original pela
+// cotação de câmbio ATUAL, o que ignora a variação cambial desde a compra).
+function precoHistoricoAporteEm(aporte, curCode) {
+    const cached = histAllCurrencyPriceCache[aporte.data];
+    if (cached && cached[curCode]) return cached[curCode];
+    return null;
+}
+
+// Calcula { totalInvestido, precoMedio } na moeda curCode a partir da lista
+// de aportes, usando preço histórico nativo por data quando disponível —
+// isso é o que faz cada par fiduciário (USD/BRL/EUR) ter sua própria
+// volatilidade e seu próprio P&L%, em vez de todos mostrarem o mesmo número.
+function calcCustoAportesNativo(aportesList, curCode) {
+    let totalInvestido = 0;
+    let totalBtc = 0;
+    for (const a of aportesList) {
+        const btc = a.sats / 1e8;
+        totalBtc += btc;
+        const precoNativo = precoHistoricoAporteEm(a, curCode);
+        if (precoNativo) {
+            totalInvestido += btc * precoNativo;
+        } else {
+            totalInvestido += convertFiat(a.valor, a.currency, curCode);
+        }
+    }
+    return { totalInvestido, totalBtc };
+}
+
 const CURRENCY_FLAG = {
     USD: 'https://flagcdn.com/w40/us.png',
     BRL: 'https://flagcdn.com/w40/br.png',
@@ -4884,9 +5042,14 @@ async function fetchPeriodChange(curCode, period) {
 
 
     if (pct === null) {
+        // Usa o par nativo da moeda selecionada (BTCEUR/BTCBRL/BTCUSDT) — nunca
+        // BTCUSDT fixo — senão a variação % dá sempre igual pra EUR/BRL/USD,
+        // já que multiplicar uma série toda por uma constante não muda a % de
+        // variação entre o primeiro e o último ponto.
         try {
             const cfg = BINANCE_KLINE[period];
-            const url = `https://api.binance.com/api/v3/klines?symbol=BTCUSDT&interval=${cfg.interval}&limit=${cfg.limit}`;
+            const symbol = BINANCE_SYMBOL[curCode] || 'BTCUSDT';
+            const url = `https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=${cfg.interval}&limit=${cfg.limit}`;
             const res = await fetch(url, { cache: 'no-store' });
             if (res.ok) {
                 const klines = await res.json();
@@ -6124,8 +6287,13 @@ async function fetchHistoricalPrice(dateStr) {
 
     const [y, m, d] = dateStr.split('-');
 
-    function applyPrice(priceUsd, source) {
-        const priceCur = convertFiat(priceUsd, 'USD', cur.code);
+    // priceIsNative = true quando o preço já veio denominado diretamente em
+    // cur.code (par nativo Binance/CryptoCompare/CoinGecko para aquela data),
+    // o que preserva a volatilidade/câmbio real daquela moeda naquele dia.
+    // Quando false, o preço veio em USD e foi convertido pela cotação de
+    // câmbio ATUAL — uma aproximação (só usada em último caso).
+    function applyPrice(price, source, priceIsNative) {
+        const priceCur = priceIsNative ? price : convertFiat(price, 'USD', cur.code);
         precoIsHistorical   = true;
         precoManuallyEdited = false;
         el.value       = priceCur.toFixed(cur.decimals === 0 ? 0 : 2);
@@ -6140,45 +6308,28 @@ async function fetchHistoricalPrice(dateStr) {
         badgeHist.textContent = dateStr;
         setBadgeState('historical');
         hint.textContent = `Preço em ${dateStr} · ${source} · edite se quiser`;
+        if (!priceIsNative) hint.textContent += ' ⚠ convertido pelo câmbio atual';
         updateFormPreview();
     }
 
+    const startMs = new Date(`${dateStr}T00:00:00Z`).getTime();
+    const endMs   = startMs + 86400000;
+    const toTs    = Math.floor(startMs / 1000) + 86400; // fecha o candle do próprio dia
+    const nativeSymbol = BINANCE_SYMBOL[cur.code] || 'BTCUSDT';
 
+    // 1) Par nativo na Binance (BTCEUR/BTCBRL/BTCUSDT) — preço já na moeda certa.
     try {
-        const startMs = new Date(`${dateStr}T00:00:00Z`).getTime();
-        const endMs   = startMs + 86400000;
-        const url = `https://api.binance.com/api/v3/klines?symbol=BTCUSDT&interval=1d&startTime=${startMs}&endTime=${endMs}&limit=1`;
-        const res = await fetch(url, { signal: sig });
-        if (res.ok) {
-            const data = await res.json();
-            if (Array.isArray(data) && data.length > 0) {
-
-                const close = parseFloat(data[0][4]);
-                if (close > 0) { applyPrice(close, 'Binance'); return; }
-            }
-        }
+        const close = await binanceCloseAt(nativeSymbol, startMs, endMs, sig);
+        if (close) { applyPrice(close, 'Binance', true); return; }
     } catch(e) { if (e.name === 'AbortError') return; }
 
-
+    // 2) CryptoCompare com tsym = moeda selecionada — também nativo.
     try {
-        const startMs  = new Date(`${dateStr}T00:00:00Z`).getTime();
-        const toTs     = Math.floor(startMs / 1000) + 86400; // fecha o candle do próprio dia
-        const url = `https://min-api.cryptocompare.com/data/v2/histoday?fsym=BTC&tsym=USD&limit=1&toTs=${toTs}`;
-        const res = await fetch(url, { signal: sig });
-        if (res.ok) {
-            const data = await res.json();
-            const points = data?.Data?.Data;
-            if (Array.isArray(points) && points.length > 0) {
-                const last = points[points.length - 1];
-                if (last && last.close > 0 && last.time * 1000 <= toTs * 1000) {
-                    applyPrice(last.close, 'CryptoCompare');
-                    return;
-                }
-            }
-        }
+        const close = await cryptoCompareCloseAt(cur.code, toTs, sig);
+        if (close) { applyPrice(close, 'CryptoCompare', true); return; }
     } catch(e) { if (e.name === 'AbortError') return; }
 
-
+    // 3) CoinGecko — devolve o preço nativo de cada moeda para a data (não só USD).
     try {
         const cgDate = `${d}-${m}-${y}`;
         const res = await fetch(
@@ -6187,15 +6338,18 @@ async function fetchHistoricalPrice(dateStr) {
         );
         if (res.ok) {
             const data = await res.json();
-            const priceUsd = data?.market_data?.current_price?.usd;
-            if (priceUsd > 0) { applyPrice(priceUsd, 'CoinGecko'); return; }
+            const cp = data?.market_data?.current_price;
+            const priceNative = cp?.[cur.code.toLowerCase()];
+            if (priceNative > 0) { applyPrice(priceNative, 'CoinGecko', true); return; }
+            const priceUsd = cp?.usd;
+            if (priceUsd > 0) { applyPrice(priceUsd, 'CoinGecko', false); return; }
         }
     } catch(e) { if (e.name === 'AbortError') return; }
 
-
+    // 4) Último recurso: estimativa mensal em USD convertida pelo câmbio de HOJE (aproximado).
     const tablePrice = btcPriceFromTable(dateStr);
     if (tablePrice) {
-        applyPrice(tablePrice, 'estimativa mensal');
+        applyPrice(tablePrice, 'estimativa mensal', false);
         hint.textContent += ' ⚠ dado aproximado';
         return;
     }
@@ -7990,8 +8144,7 @@ function renderPortfolioPrices() {
     if (!btcLocal || aportes.length === 0) return;
 
     const totalSatsAportes = aportes.reduce((s, a) => s + a.sats, 0);
-    const totalBtcAportes  = totalSatsAportes / 100_000_000;
-    const totalInvestido   = aportes.reduce((s, a) => s + convertFiat(a.valor, a.currency, cur.code), 0);
+    const { totalInvestido, totalBtc: totalBtcAportes } = calcCustoAportesNativo(aportes, cur.code);
     const precoMedio       = totalSatsAportes > 0 ? (totalInvestido / totalBtcAportes) : 0;
 
     // Posição atual = aportes − vendas/gastos já registrados
@@ -8047,11 +8200,11 @@ function renderPortfolio() {
     const btcLocal = btcPrices?.[cur.code];
 
     const totalSatsAportes = aportes.reduce((s, a) => s + a.sats, 0);
-    const totalInvestido   = aportes.reduce((s, a) => s + convertFiat(a.valor, a.currency, cur.code), 0);
-    const totalBtcAportes  = totalSatsAportes / 100_000_000;
+    const { totalInvestido, totalBtc: totalBtcAportes } = calcCustoAportesNativo(aportes, cur.code);
 
     // Posição atual = aportes − vendas/gastos já registrados na aba Saídas
     const totalSats = currentTotalSats();
+    ensureHistPricesForAportes();
     const totalBtc  = totalSats / 100_000_000;
 
     document.getElementById('ps-total-sats').textContent = formatSatsOrBtc(totalSats);
@@ -9869,8 +10022,8 @@ function goalRender() {
     const cur      = selectedCurrency;
     const btcLocal = btcPrices?.[cur.code];
     const totalSatsAportes = aportes.reduce((s, a) => s + a.sats, 0);
-    const totalInvestidoAportes = aportes.reduce((s, a) => s + convertFiat(a.valor, a.currency, cur.code), 0);
-    const precoMedioGlobal = totalSatsAportes > 0 ? (totalInvestidoAportes / (totalSatsAportes / 100_000_000)) : 0;
+    const { totalInvestido: totalInvestidoAportes, totalBtc: totalBtcAportesGoal } = calcCustoAportesNativo(aportes, cur.code);
+    const precoMedioGlobal = totalSatsAportes > 0 ? (totalInvestidoAportes / totalBtcAportesGoal) : 0;
     // Custo ainda preso na posição atual (desconta o que já foi vendido/gasto)
     const totalInvestido = precoMedioGlobal * totalBtc;
 
@@ -10632,10 +10785,9 @@ function custoBasePosicaoAtual() {
 function calcCustoMedioGlobal() {
     if (!aportes || aportes.length === 0) return 0;
     const cur = selectedCurrency;
-    const totalSats = aportes.reduce((s, a) => s + a.sats, 0);
-    const totalInvestido = aportes.reduce((s, a) => s + convertFiat(a.valor, a.currency, cur.code), 0);
-    if (totalSats === 0) return 0;
-    return (totalInvestido / (totalSats / 1e8));
+    const { totalInvestido, totalBtc } = calcCustoAportesNativo(aportes, cur.code);
+    if (totalBtc === 0) return 0;
+    return (totalInvestido / totalBtc);
 }
 
 function saveVendas() {
@@ -11220,6 +11372,13 @@ async function fetchPatrimonioHistory(curCode, period) {
         }
     } catch (e) { }
 
+    // Par nativo da moeda selecionada (BTCEUR/BTCBRL/BTCUSDT). Usar sempre este
+    // símbolo — e nunca BTCUSDT com o candle convertido pela cotação de câmbio
+    // ATUAL — é o que garante que o histórico de EUR/BRL carregue a própria
+    // volatilidade + variação cambial da moeda, em vez de repetir a curva do USD
+    // reescalada por uma constante (o que dá exatamente o mesmo P&L% que o USD).
+    const nativeSymbol = BINANCE_SYMBOL[curCode] || 'BTCUSDT';
+
     if (!prices) {
         try {
             if (period === 'all' && days > 1000) {
@@ -11231,7 +11390,7 @@ async function fetchPatrimonioHistory(curCode, period) {
                 let reqCount = 0;
                 const maxRequests = 15; // até 15.000 dias de segurança
                 while (endTime > startTime && reqCount < maxRequests) {
-                    const url = `https://api.binance.com/api/v3/klines?symbol=BTCUSDT&interval=1d&limit=1000&endTime=${endTime}`;
+                    const url = `https://api.binance.com/api/v3/klines?symbol=${nativeSymbol}&interval=1d&limit=1000&endTime=${endTime}`;
                     const res = await fetch(url, { cache: 'no-store' });
                     if (!res.ok) break;
                     const kl = await res.json();
@@ -11243,13 +11402,12 @@ async function fetchPatrimonioHistory(curCode, period) {
                     endTime = earliestTs - 1;
                 }
                 if (allKlines.length >= 2) {
-                    const rate = (fxRates && fxRates[curCode]) ? fxRates[curCode] : 1;
                     const seen = new Set();
                     const merged = [];
                     for (const k of allKlines) {
                         if (seen.has(k[0])) continue;
                         seen.add(k[0]);
-                        merged.push([k[0], parseFloat(k[4]) * rate]);
+                        merged.push([k[0], parseFloat(k[4])]);
                     }
                     merged.sort((a, b) => a[0] - b[0]);
                     prices = merged;
@@ -11260,14 +11418,36 @@ async function fetchPatrimonioHistory(curCode, period) {
                           : period === '30d' ? { interval: '1d', limit: 30 }
                           : period === '90d' ? { interval: '1d', limit: 90 }
                           :                    { interval: '1d', limit: Math.min(days, 1000) };
-                const url = `https://api.binance.com/api/v3/klines?symbol=BTCUSDT&interval=${cfg.interval}&limit=${cfg.limit}`;
+                const url = `https://api.binance.com/api/v3/klines?symbol=${nativeSymbol}&interval=${cfg.interval}&limit=${cfg.limit}`;
                 const res = await fetch(url, { cache: 'no-store' });
                 if (res.ok) {
                     const kl = await res.json();
                     if (Array.isArray(kl) && kl.length >= 2) {
-                        const rate = (fxRates && fxRates[curCode]) ? fxRates[curCode] : 1;
-                        prices = kl.map(k => [k[0], parseFloat(k[4]) * rate]);
+                        prices = kl.map(k => [k[0], parseFloat(k[4])]);
                     }
+                }
+            }
+        } catch (e) { }
+    }
+
+    // Último recurso, só se o par nativo não existir/estiver indisponível na
+    // Binance: reescala o candle em USDT pela cotação de câmbio atual. Isso é
+    // uma aproximação (não captura o câmbio histórico), então só é usado se
+    // absolutamente nada nativo funcionou.
+    if (!prices && nativeSymbol !== 'BTCUSDT') {
+        try {
+            const cfg = period === '24h' ? { interval: '1h', limit: 24 }
+                      : period === '7d'  ? { interval: '4h', limit: 42 }
+                      : period === '30d' ? { interval: '1d', limit: 30 }
+                      : period === '90d' ? { interval: '1d', limit: 90 }
+                      :                    { interval: '1d', limit: Math.min(days, 1000) };
+            const url = `https://api.binance.com/api/v3/klines?symbol=BTCUSDT&interval=${cfg.interval}&limit=${cfg.limit}`;
+            const res = await fetch(url, { cache: 'no-store' });
+            if (res.ok) {
+                const kl = await res.json();
+                if (Array.isArray(kl) && kl.length >= 2) {
+                    const rate = (fxRates && fxRates[curCode]) ? fxRates[curCode] : 1;
+                    prices = kl.map(k => [k[0], parseFloat(k[4]) * rate]);
                 }
             }
         } catch (e) { }
