@@ -4907,6 +4907,7 @@ async function fetchPeriodChange(curCode, period) {
         if (selectedPeriod === period && selectedCurrency.code === curCode) applyChange(pct);
     } else {
         changeErrorCache[key] = Date.now();
+        addAppLog(`Falha ao buscar variação de preço (${curCode}, ${period}): CoinGecko e Binance indisponíveis.`, 'warn');
         if (el && selectedPeriod === period && selectedCurrency.code === curCode) {
             el.textContent = '—'; el.className = 'btc-live-change';
         }
@@ -5329,6 +5330,7 @@ setInterval(updateLastUpdate, 1000);
 const CG_CURRENCIES = CURRENCIES.map(c => c.code.toLowerCase()).join(',');
 const CG_URL = `https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=${CG_CURRENCIES}`;
 
+let _cgFetchWasFailing = false;
 async function fetchCoinGecko() {
     try {
         const res = await fetch(CG_URL, { cache: 'no-store' });
@@ -5353,8 +5355,10 @@ async function fetchCoinGecko() {
         renderPortfolio();
 
         if (wsReconnecting || !wsActive) setStatus('live', 'Ao vivo · CoinGecko');
+        if (_cgFetchWasFailing) { addAppLog('✓ Cotação restabelecida (CoinGecko).', 'success'); _cgFetchWasFailing = false; }
     } catch (err) {
         console.warn('CoinGecko error:', err);
+        if (!_cgFetchWasFailing) { addAppLog(`Falha ao buscar cotação (CoinGecko): ${err.message}`, 'warn'); _cgFetchWasFailing = true; }
         if (!btcPrices) setStatus('error', 'Sem cotação · verifique conexão');
     }
 }
@@ -5365,7 +5369,7 @@ let ws       = null;
 function connectWS() {
     if (wsRetryCount >= WS_MAX_RETRIES) {
         setStatus('warn', 'WebSocket indisponível · usando CoinGecko');
-
+        addAppLog(`WebSocket da Binance indisponível após ${WS_MAX_RETRIES} tentativas — usando CoinGecko como fonte de preço.`, 'warn');
         if (!cgPollInterval) cgPollInterval = setInterval(fetchCoinGecko, 30_000);
         return;
     }
@@ -6018,6 +6022,7 @@ document.getElementById('btn-add-aporte').addEventListener('click', () => {
     saveAportes();
     renderPortfolio();
     clearFormInputs();
+    addAppLog(`✓ Aporte adicionado (${aporte.data}).`, 'success');
     showToast('✓ Aporte registrado!', 'success');
 });
 
@@ -6044,6 +6049,7 @@ document.getElementById('btn-clear-all').addEventListener('click', async () => {
     localStorage.setItem(CLEAR_TS_KEY, String(Math.floor(Date.now() / 1000)));
     saveAportes();
     renderPortfolio();
+    addAppLog('✓ Todos os aportes foram removidos pelo usuário.', 'warn');
     showToast('✓ Todos os aportes foram removidos.', '');
 });
 
@@ -6199,6 +6205,7 @@ async function fetchHistoricalPrice(dateStr) {
     precoIsHistorical = false;
     setBadgeState('none');
     hint.textContent = `⚠ Sem dados para ${dateStr} · informe o preço manualmente`;
+    addAppLog(`Falha ao buscar preço histórico de ${dateStr}: todas as fontes indisponíveis.`, 'warn');
 }
 
 document.getElementById('f-data').addEventListener('change', (e) => {
@@ -7020,6 +7027,7 @@ async function fetchRealBlockHeight(force) {
     }
     // Todas as APIs falharam: mantém o último valor real conhecido (se houver) até expirar,
     // ou cai para a estimativa por tempo dentro de getCurrentBlock().
+    addAppLog('Falha ao buscar altura do bloco: todas as APIs (mempool.space, blockstream.info, blockchain.info) indisponíveis.', 'warn');
     realBlockLoading = false;
 }
 
@@ -7655,6 +7663,7 @@ async function loadCycleIndicators(force) {
                 statusIcon.textContent = '⚠️';
                 statusLabel.textContent = 'Não foi possível carregar os indicadores.';
                 statusSub.textContent = 'Verifique sua conexão e tente novamente. (' + (e2.message || e2) + ')';
+                addAppLog(`Falha ao carregar histórico de preços para indicadores de ciclo: Binance e CoinGecko indisponíveis (${e2.message || e2}).`, 'warn');
                 return;
             }
         }
@@ -7970,6 +7979,7 @@ document.getElementById('btn-edit-save').addEventListener('click', () => {
     renderPortfolio();
     document.getElementById('modal-edit').classList.add('hidden');
     editingId = null;
+    addAppLog(`✓ Aporte editado (${data}).`, 'info');
     showToast('✓ Aporte atualizado!', 'success');
 });
 
@@ -8179,6 +8189,7 @@ function renderPortfolio() {
                 aportes = aportes.filter(x => x.id !== a.id);
                 saveAportes();
                 renderPortfolio();
+                addAppLog(`Aporte removido (${a.data}).`, 'warn');
                 showToast('Aporte removido.', '');
             });
             confirmSpan.querySelector('.dc-no').addEventListener('click', () => {
@@ -8450,6 +8461,7 @@ function exportAportesCSV() {
     const csv  = [hdr, ...rows].map(r => r.map(escapeCSVField).join(',')).join('\r\n');
     const date = todayLocalStr();
     downloadFile(csv, `btc-aportes-${date}.csv`, 'text/csv;charset=utf-8');
+    addAppLog(`✓ ${aportes.length} aporte(s) exportados como CSV.`, 'success');
     showToast(`✓ ${aportes.length} aportes exportados como CSV!`, 'success');
 }
 
@@ -8460,6 +8472,7 @@ function exportAportesXLSX() {
     const rows = getAportesExportRows();
     const date = todayLocalStr();
     downloadXLSX(hdr, rows, 'Aportes', `btc-aportes-${date}.xlsx`);
+    addAppLog(`✓ ${aportes.length} aporte(s) exportados como Excel.`, 'success');
     showToast(`✓ ${aportes.length} aportes exportados como Excel!`, 'success');
 }
 
@@ -8773,10 +8786,12 @@ async function handleImportFile(inputEl) {
         aportes.sort((a, b) => new Date(a.data) - new Date(b.data));
         await saveAportesAsync(aportes);
         renderPortfolio();
+        addAppLog(`✓ Planilha importada: ${novos.length} aporte(s) adicionados (${duplicados} duplicado(s) ignorado(s)).`, 'success');
         showToast(`✓ ${novos.length} aporte(s) importado(s) com sucesso!`, 'success');
 
     } catch (e) {
         console.error(e);
+        addAppLog(`ERRO ao importar planilha: ${e.message || 'formato não suportado'}`, 'error');
         showToast('⚠ Erro ao importar planilha: ' + (e.message || 'formato não suportado'), 'error');
     } finally {
         if (btn) { btn.disabled = false; btn.textContent = originalLabel; }
@@ -8816,6 +8831,7 @@ function exportVendasCSV() {
     const csv  = [hdr, ...rows].map(r => r.map(escapeCSVField).join(',')).join('\r\n');
     const date = todayLocalStr();
     downloadFile(csv, `btc-vendas-${date}.csv`, 'text/csv;charset=utf-8');
+    addAppLog(`✓ ${vendas.length} saída(s) exportadas como CSV.`, 'success');
     showToast(`✓ ${vendas.length} saídas exportadas como CSV!`, 'success');
 }
 
@@ -8826,6 +8842,7 @@ function exportVendasXLSX() {
     const rows = getVendasExportRows();
     const date = todayLocalStr();
     downloadXLSX(hdr, rows, 'Vendas e Saidas', `btc-vendas-${date}.xlsx`);
+    addAppLog(`✓ ${vendas.length} saída(s) exportadas como Excel.`, 'success');
     showToast(`✓ ${vendas.length} saídas exportadas como Excel!`, 'success');
 }
 
@@ -9427,6 +9444,7 @@ function alertAddPercent() {
     document.getElementById('alert-percent-input').value = '';
     const winLabel = ALERT_WINDOW_LABEL[windowH] || (windowH + 'h');
     const dirText  = _alertPctDir === 'down' ? 'queda de' : 'alta de';
+    addAppLog(`Alerta de variação criado: ${dirText} ${percent}% em ${winLabel}.`, 'info');
     showToast(`Alerta criado: ${_alertPctDir === 'down' ? '▼' : '▲'} ${dirText} ${percent}% em ${winLabel}`);
 }
 
@@ -9443,6 +9461,7 @@ function alertAdd() {
     alertSave();
     alertRenderList();
     document.getElementById('alert-price-input').value = '';
+    addAppLog(`Alerta de preço criado: ${_alertDir === 'up' ? 'acima de' : 'abaixo de'} ${price.toLocaleString('pt-BR')} ${cur}.`, 'info');
     showToast(`Alerta criado: ${_alertDir === 'up' ? '▲ acima de' : '▼ abaixo de'} ${price.toLocaleString('pt-BR')} ${cur}`);
 }
 
@@ -9458,6 +9477,7 @@ function alertAddHalving() {
     alertSave();
     alertRenderList();
     document.getElementById('alert-halving-input').value = '';
+    addAppLog(`Alerta de halving criado: ${days} dia(s) antes.`, 'info');
     showToast(`Alerta criado: avisar quando faltarem ${days} dia(s) para o halving`);
 }
 
@@ -9504,6 +9524,7 @@ function alertAddCycle() {
     alertRenderList();
     document.getElementById('alert-cycle-input').value = '';
     const dirText = _alertCycleDir === 'below' ? 'abaixo de' : 'acima de';
+    addAppLog(`Alerta de ciclo criado: ${CYCLE_INDICATOR_LABEL[ind]} ${dirText} ${value}.`, 'info');
     showToast(`Alerta criado: ${CYCLE_INDICATOR_LABEL[ind]} ${dirText} ${value}`);
 }
 
@@ -9512,6 +9533,7 @@ function alertDelete(id) {
     _alertsNotified.delete(id);
     alertSave();
     alertRenderList();
+    addAppLog('Alerta removido pelo usuário.', 'warn');
 }
 
 function alertRenderList() {
@@ -9608,6 +9630,7 @@ function fireAlertNotification(alertId, message) {
     _alertsNotified.add(alertId);
     showToast(message, 'success');
     notifySystem('₿ Alerta BTC', message, ALERT_NOTIFY_ICON);
+    addAppLog(`🔔 Alerta disparado: ${message}`, 'success');
     const el = document.getElementById(`alert-item-${alertId}`);
     if (el) el.classList.add('alert-triggered');
 }
@@ -9689,6 +9712,7 @@ function alertCheck() {
                     const msg = `BTC ${dirText} ${Math.abs(res.pct).toFixed(1)}% em ${winLabel} (${sym} ${a.currency})`;
                     showToast(msg, 'success');
                     notifySystem('₿ Alerta BTC', msg, notifyIcon);
+                    addAppLog(`🔔 Alerta disparado: ${msg}`, 'success');
                     const el = document.getElementById(`alert-item-${a.id}`);
                     if (el) el.classList.add('alert-triggered');
                 }
@@ -9717,6 +9741,7 @@ function alertCheck() {
                 showToast(`BTC ${dirText} ${sym}${priceStr} ${a.currency}!`, 'success');
                 // Notificação real do sistema (via Service Worker) se permissão concedida
                 notifySystem('₿ Alerta BTC', `BTC ${dirText} ${sym}${priceStr} ${a.currency}`, notifyIcon);
+                addAppLog(`🔔 Alerta disparado: BTC ${dirText} ${sym}${priceStr} ${a.currency}.`, 'success');
                 // Update item in DOM
                 const el = document.getElementById(`alert-item-${a.id}`);
                 if (el) el.classList.add('alert-triggered');
@@ -10115,9 +10140,32 @@ function sanitizeLogText(str) {
 const _APP_LOG_MAX=500; let _appLogs=[];
 function addAppLog(msg,type='info') {
     const safeType=['success','error','warn','info'].includes(type)?type:'info';
-    const safeMsg=sanitizeLogText(msg); _appLogs.push({msg:safeMsg,type:safeType,timestamp:new Date().toLocaleTimeString('pt-BR')});
+    const safeMsg=sanitizeLogText(msg);
+    const entry={msg:safeMsg,type:safeType,timestamp:new Date().toLocaleTimeString('pt-BR')};
+    _appLogs.push(entry);
     if(_appLogs.length>_APP_LOG_MAX) _appLogs.shift();
     try{console[safeType==='error'?'error':safeType==='warn'?'warn':'log'](`[${safeType.toUpperCase()}] ${safeMsg}`);}catch{}
+    appendAppLogEntryIfOpen(entry);
+}
+// Anexa a entrada nova diretamente no DOM (sem re-renderizar a lista toda)
+// caso o modal do log já esteja aberto — dá a sensação de log em tempo real
+// com custo mínimo, já que só mexe no que mudou.
+function appendAppLogEntryIfOpen(entry) {
+    const overlay=document.getElementById('applog-modal-overlay');
+    if(!overlay||overlay.classList.contains('hidden')) return;
+    const el=document.getElementById('applog-list');
+    if(!el) return;
+    const empty=el.querySelector('.applog-empty');
+    if(empty) empty.remove();
+    const t=APPLOG_ICON_PATHS[entry.type]?entry.type:'info';
+    const r=document.createElement('div');
+    r.className=`applog-entry type-${t}`;
+    r.innerHTML=`<span class="applog-entry-icon"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">${APPLOG_ICON_PATHS[t]}</svg></span><span>[${entry.timestamp}] ${entry.msg}</span>`;
+    el.appendChild(r);
+    while(el.children.length>_APP_LOG_MAX) el.removeChild(el.firstChild);
+    el.scrollTop=el.scrollHeight;
+    const ts=document.getElementById('applog-updated');
+    if(ts) ts.textContent=`Atualizado às ${new Date().toLocaleTimeString('pt-BR')}`;
 }
 function getAppLogLines(){return _appLogs.length?_appLogs.map(l=>`[${l.timestamp}] [${l.type.toUpperCase()}] ${l.msg}`):['Nenhum evento registrado nesta sessão.'];}
 function buildAppLogFileContent(){return ['BTC Stack — Log de Diagnóstico',`Gerado em: ${new Date().toLocaleString('pt-BR')}`,`User-Agent: ${sanitizeLogText(navigator.userAgent)}`,'Este arquivo contém apenas eventos técnicos desta sessão.','Não inclui valores de aportes/vendas, saldos, senhas ou endereços.','='.repeat(48),'',...getAppLogLines(),''].join('\n');}
@@ -10827,6 +10875,7 @@ function vendaRegistrar() {
     if (typeof goalRender === 'function') goalRender();
     if (typeof refreshPatrimonioChart === 'function') refreshPatrimonioChart();
     vendaLimpar();
+    addAppLog(`✓ ${_vendaTipo === 'sell' ? 'Venda' : 'Gasto'} registrado (${venda.data}).`, 'success');
     showToast('\u2713 Saida registrada!', 'success');
 }
 
@@ -10888,6 +10937,7 @@ function renderVendas() {
             renderPortfolio();
             if (typeof goalRender === 'function') goalRender();
             if (typeof refreshPatrimonioChart === 'function') refreshPatrimonioChart();
+            addAppLog(`Saída removida (${v.data}).`, 'warn');
             showToast('\u2713 Saida removida.', '');
         });
         tr.querySelector('.td-action').appendChild(btnDel);
@@ -11224,6 +11274,7 @@ async function fetchPatrimonioHistory(curCode, period) {
     }
 
     if (prices) patrimChartCache[key] = { prices, ts: Date.now() };
+    else addAppLog(`Falha ao buscar histórico de preços para o gráfico (${curCode}, ${period}): CoinGecko e Binance indisponíveis.`, 'warn');
     savePatrimChartCache();
     return prices || [];
 }
