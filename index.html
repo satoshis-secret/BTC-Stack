@@ -4836,15 +4836,24 @@ function precoHistoricoAporteEm(aporte, curCode) {
 }
 
 // Calcula { totalInvestido, precoMedio } na moeda curCode a partir da lista
-// de aportes, usando preço histórico nativo por data quando disponível —
-// isso é o que faz cada par fiduciário (USD/BRL/EUR) ter sua própria
-// volatilidade e seu próprio P&L%, em vez de todos mostrarem o mesmo número.
+// de aportes. Quando o aporte já foi registrado na própria moeda curCode,
+// o valor que o usuário digitou é a fonte da verdade e é usado direto —
+// nunca sobrescrito por uma cotação de terceiros (CoinGecko/cache), que
+// pode divergir da corretora/preço que a pessoa realmente pagou. A cotação
+// histórica só entra quando é preciso CONVERTER entre moedas diferentes
+// (ex.: aporte feito em BRL, visualizando o card em USD), pois aí sim é
+// isso que faz cada par fiduciário ter sua própria volatilidade e seu
+// próprio P&L%, em vez de todos mostrarem o mesmo número.
 function calcCustoAportesNativo(aportesList, curCode) {
     let totalInvestido = 0;
     let totalBtc = 0;
     for (const a of aportesList) {
         const btc = a.sats / 1e8;
         totalBtc += btc;
+        if (a.currency === curCode) {
+            totalInvestido += a.valor;
+            continue;
+        }
         const precoNativo = precoHistoricoAporteEm(a, curCode);
         if (precoNativo) {
             totalInvestido += btc * precoNativo;
@@ -11579,14 +11588,12 @@ function updatePatrimonioHeader(series, cur, period) {
         if (valEl.textContent !== newVal) { valEl.textContent = newVal; pulseEl('patrimonio-chart-value'); }
     }
     if (pnlEl) {
-        // Para "Tudo", o P&L deve refletir o resultado real sobre o capital
-        // aportado (igual ao card Lucro/Prejuízo), e não a variação do 1º ao
-        // último ponto da série — que subestima a base pois no início nem
-        // todos os aportes tinham sido feitos ainda.
-        let baseline = first;
-        if (period === 'all') {
-            baseline = custoBasePosicaoAtual();
-        }
+        // O P&L deste badge deve sempre refletir o resultado real sobre o
+        // capital aportado (igual ao card Lucro/Prejuízo no topo), e não a
+        // variação do 1º ao último ponto da série do período selecionado —
+        // isso fazia o badge mudar de significado ao trocar de aba (24h,
+        // 7D, 30D...), deixando de bater com o preço médio de compra.
+        const baseline = custoBasePosicaoAtual();
         if (baseline > 0) {
             const pct = ((last - baseline) / baseline) * 100;
             const isPos = pct >= 0;
